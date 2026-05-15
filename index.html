@@ -110,15 +110,6 @@ html[data-theme="dark"] .m11{--mc:#162226;--ml:#0f1a1f;--mt:#7dd3fc}
 .month-body{display:none}.month-body.open{display:block}
 
 .week-block{border-bottom:1px solid var(--mb)}.week-block:last-child{border-bottom:none}
-.week-label-row{background:var(--mc);padding:5px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-main)}
-.week-lbl{font-size:9px;color:var(--mt);font-weight:700;letter-spacing:0.5px;opacity:0.7;text-transform:uppercase}
-.week-right{display:flex;align-items:center;gap:6px}
-.week-min-lbl{font-size:9px;font-weight:700;letter-spacing:0.5px;color:var(--mt);opacity:0.6;text-transform:uppercase}
-.week-min-badge{font-size:13px;font-family:'Roboto Mono',monospace;font-weight:800;letter-spacing:-0.3px}
-.wmin-green{color:#16a34a}.wmin-yellow{color:#d97706}.wmin-red{color:#dc2626}
-html[data-theme="dark"] .wmin-green{color:#4ade80}
-html[data-theme="dark"] .wmin-yellow{color:#fbbf24}
-html[data-theme="dark"] .wmin-red{color:#f87171}
 
 .day-grid{display:grid;grid-template-columns:repeat(7,1fr)}
 .day-col{border-right:1px solid var(--border-main);display:flex;flex-direction:column;background:var(--bg-card)}.day-col:last-of-type{border-right:none}
@@ -535,12 +526,50 @@ function buildMonthRows(m) {
 }
 function wMinClass(v) { if (v===null) return ''; if (v>=1000) return 'wmin-green'; if (v>=500) return 'wmin-yellow'; return 'wmin-red'; }
 
+// ── REPEAT HELPERS ────────────────────────────────────────────
+// Given a start date key, repeat type, and tx object, stamp it onto all matching days
+function applyRepeat(startKey, repeatType, specificDate, tx) {
+  const startDate = new Date(startKey);
+  const end = new Date(YEAR, 11, 31);
+  const txEntry = {name:tx.name, amount:tx.amount, paid:tx.paid, category:tx.category};
+
+  if (repeatType === 'specific') {
+    // Just one specific date
+    const d = getDay(specificDate);
+    const exists = d.transactions.some(t=>t.name===tx.name&&t.amount===tx.amount);
+    if (!exists) d.transactions.push({...txEntry});
+    return;
+  }
+
+  const cur = new Date(startDate);
+  while (cur <= end) {
+    const key = dk(cur);
+    // Skip the origin day — it's already being added by the normal save path
+    if (key !== startKey) {
+      const d = getDay(key);
+      const exists = d.transactions.some(t=>t.name===tx.name&&t.amount===tx.amount);
+      if (!exists) d.transactions.push({...txEntry});
+    }
+    if (repeatType === 'daily') {
+      cur.setDate(cur.getDate() + 1);
+    } else if (repeatType === 'weekly') {
+      cur.setDate(cur.getDate() + 7);
+    } else if (repeatType === 'monthly') {
+      cur.setMonth(cur.getMonth() + 1);
+    } else {
+      break;
+    }
+  }
+}
+
 // ── MODALS ───────────────────────────────────────────────────
 function openModal(dk_key, txIdx) {
   const d = getDay(dk_key); const isNew = txIdx===-1;
   const tx = isNew ? {name:'',amount:'',paid:false,category:'OTHER'} : {...d.transactions[txIdx]};
   const isOpening = tx.__opening===true; const cat = tx.category||detectCat(tx.name||'');
   const root = document.getElementById('modal-root');
+
+  // Opening balance modal
   if (isOpening) {
     root.innerHTML=`<div class="modal-ov" id="mov"><div class="modal">
       <h3>Edit 2025 Opening Balance</h3>
@@ -557,16 +586,64 @@ function openModal(dk_key, txIdx) {
     };
     setTimeout(()=>document.getElementById('mob').focus(),30); return;
   }
-  root.innerHTML=`<div class="modal-ov" id="mov"><div class="modal">
+
+  // Build the specific date min (can't pick before start date or after year end)
+  const minDate = dk_key;
+  const maxDate = `${YEAR}-12-31`;
+
+  root.innerHTML=`<div class="modal-ov" id="mov"><div class="modal" style="max-width:400px">
     <h3>${isNew?'Add Transaction':'Edit Transaction'} — ${dk_key}</h3>
-    <label>Name</label><input id="mn" value="${(tx.name||'').replace(/"/g,'&quot;')}" placeholder="e.g. PAY - Keagan">
-    <label>Amount (negative = expense)</label><input id="ma" type="number" step="0.01" value="${tx.amount!==''&&tx.amount!==undefined?tx.amount:''}">
-    <label>Category</label><select id="mc">${CATS.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('')}</select>
-    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:10px"><input type="checkbox" id="mp" ${tx.paid?'checked':''}> Mark as Paid</label>
-    <div class="mbtns">${!isNew?'<button class="mbdel" id="mdel">Delete</button>':''}<button id="mcancel">Cancel</button><button class="mbsave" id="msave">Save</button></div>
+    <label>Name</label>
+    <input id="mn" value="${(tx.name||'').replace(/"/g,'&quot;')}" placeholder="e.g. PAY - Keagan">
+    <label>Amount (negative = expense)</label>
+    <input id="ma" type="number" step="0.01" value="${tx.amount!==''&&tx.amount!==undefined?tx.amount:''}">
+    <label>Category</label>
+    <select id="mc">${CATS.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('')}</select>
+    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:10px">
+      <input type="checkbox" id="mp" ${tx.paid?'checked':''}> Mark as Paid
+    </label>
+    ${isNew?`
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-col)">
+      <label style="margin-top:0;display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="mrep"> Does this transaction repeat?
+      </label>
+      <div id="repeat-opts" style="display:none;margin-top:10px">
+        <label>Repeat frequency</label>
+        <select id="mfreq">
+          <option value="daily">Every day</option>
+          <option value="weekly" selected>Every week (same day)</option>
+          <option value="monthly">Every month (same date)</option>
+          <option value="specific">On a specific date only</option>
+        </select>
+        <div id="specific-date-wrap" style="display:none">
+          <label>Specific date</label>
+          <input type="date" id="mspecdate" min="${minDate}" max="${maxDate}" value="${minDate}">
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5">
+          This will add the transaction to all matching dates from <strong>${dk_key}</strong> through Dec 31, ${YEAR}.
+        </p>
+      </div>
+    </div>`:''}
+    <div class="mbtns">
+      ${!isNew?'<button class="mbdel" id="mdel">Delete</button>':''}
+      <button id="mcancel">Cancel</button>
+      <button class="mbsave" id="msave">${isNew?'Add':'Save'}</button>
+    </div>
   </div></div>`;
+
   document.getElementById('mcancel').onclick=()=>root.innerHTML='';
   document.getElementById('mov').onclick=e=>{if(e.target.id==='mov')root.innerHTML='';};
+
+  // Wire up repeat checkbox toggle
+  if (isNew) {
+    const repCb = document.getElementById('mrep');
+    const repOpts = document.getElementById('repeat-opts');
+    const freqSel = document.getElementById('mfreq');
+    const specWrap = document.getElementById('specific-date-wrap');
+    repCb.onchange = () => { repOpts.style.display = repCb.checked ? 'block' : 'none'; };
+    freqSel.onchange = () => { specWrap.style.display = freqSel.value === 'specific' ? 'block' : 'none'; };
+  }
+
   document.getElementById('msave').onclick=()=>{
     const name=document.getElementById('mn').value.trim();
     const amount=parseFloat(document.getElementById('ma').value);
@@ -574,10 +651,29 @@ function openModal(dk_key, txIdx) {
     const category=document.getElementById('mc').value;
     if(!name||isNaN(amount)){alert('Fill in name and amount.');return;}
     const fc=category==='OTHER'?detectCat(name):category;
-    if(isNew) d.transactions.push({name,amount,paid,category:fc});
-    else d.transactions[txIdx]={name,amount,paid,category:fc};
+    const txEntry = {name,amount,paid,category:fc};
+
+    if(isNew) {
+      // Add to origin day
+      d.transactions.push({...txEntry});
+
+      // Handle repeat
+      const repCb = document.getElementById('mrep');
+      if (repCb && repCb.checked) {
+        const freq = document.getElementById('mfreq').value;
+        let specificDate = null;
+        if (freq === 'specific') {
+          specificDate = document.getElementById('mspecdate').value;
+          if (!specificDate) { alert('Please pick a specific date.'); return; }
+        }
+        applyRepeat(dk_key, freq, specificDate, txEntry);
+      }
+    } else {
+      d.transactions[txIdx]={...txEntry};
+    }
     scheduleSave(); root.innerHTML=''; renderAll();
   };
+
   if(!isNew) document.getElementById('mdel').onclick=()=>{
     if(confirm('Delete?')){ d.transactions.splice(txIdx,1); scheduleSave(); root.innerHTML=''; renderAll(); }
   };
@@ -661,13 +757,6 @@ function renderMonth(m, balMap) {
   const mbody=document.createElement('div'); mbody.className=`month-body${isOpen?' open':''}`;
   rows.forEach(week=>{
     const wb=document.createElement('div'); wb.className='week-block';
-    const inM=week.filter(d=>d.getMonth()===m&&d.getFullYear()===YEAR);
-    const wMin=weekMinFromMap(week,balMap);
-    const s=inM.length?fmt(inM[0]):''; const e=inM.length>1?fmt(inM[inM.length-1]):'';
-    const wlr=document.createElement('div'); wlr.className='week-label-row';
-    wlr.innerHTML=`<span class="week-lbl">Week · ${s}${e?' – '+e:''}</span>
-      <span class="week-right"><span class="week-min-lbl">W Min</span><span class="week-min-badge ${wMinClass(wMin)}">${fmtM(wMin)}</span></span>`;
-    wb.appendChild(wlr);
     const grid=document.createElement('div'); grid.className='day-grid';
     week.forEach(day=>grid.appendChild(renderDayCol(day,m,balMap,day.getMonth()!==m||day.getFullYear()!==YEAR)));
     wb.appendChild(grid); mbody.appendChild(wb);
