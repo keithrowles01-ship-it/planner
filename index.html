@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rowles Financial Planner 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Roboto',sans-serif;font-size:12px;background:var(--bg-page);color:var(--text-primary);min-height:100vh;transition:background 0.2s,color 0.2s}
+
+html[data-theme="light"]{
+  --bg-page:#f0f2f8;--bg-card:#fff;--bg-card2:#f8f9fc;--bg-col-hdr:#f8f9fc;
+  --bg-past-hdr:#e4e4ec;--bg-past-col:#f5f5f8;--bg-past-colhdr:#ececf2;
+  --bg-blank:#f4f5fa;--bg-blank-hdr:#e8e9f0;--bg-add-row:#fff;--bg-modal:#fff;
+  --text-primary:#1a1a2e;--text-muted:#999;--text-past-name:#777;--text-past-day:#777;--text-blank:#ccc;
+  --border-main:rgba(0,0,0,0.08);--border-col:#e8e8f0;--border-modal:#d0d8f0;
+  --add-row-color:#bbb;--add-row-hover:#555;--tx-hover:#f0f0ff;--bal-row-bg:#f8f9fc;--shadow:0 2px 8px rgba(0,0,0,0.12);
+  --unpaid-past-bg:#fff0f0;--unpaid-past-border:#f87171;--unpaid-past-nm:#b91c1c;--unpaid-past-amt:#b91c1c;
+}
+html[data-theme="dark"]{
+  --bg-page:#0e0e14;--bg-card:#1a1a26;--bg-card2:#13131e;--bg-col-hdr:#0e0e18;
+  --bg-past-hdr:#141418;--bg-past-col:#111118;--bg-past-colhdr:#0e0e14;
+  --bg-blank:#0d0d14;--bg-blank-hdr:#111118;--bg-add-row:#1a1a26;--bg-modal:#1a1a2e;
+  --text-primary:#e0e0f0;--text-muted:#5a5a7a;--text-past-name:#444458;--text-past-day:#444458;--text-blank:#2a2a3a;
+  --border-main:rgba(255,255,255,0.06);--border-col:#1e1e2e;--border-modal:#2e2e4e;
+  --add-row-color:#333348;--add-row-hover:#8888aa;--tx-hover:#1e1e30;--bal-row-bg:#0c0c18;--shadow:0 2px 8px rgba(0,0,0,0.4);
+  --unpaid-past-bg:#2a0e0e;--unpaid-past-border:#ef4444;--unpaid-past-nm:#fca5a5;--unpaid-past-amt:#f87171;
+}
+
+.app-header{background:#1e2a4a;padding:8px 14px;border-bottom:2px solid #2d3f6e;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:10px}
+html[data-theme="dark"] .app-header{background:#0d1525;border-bottom-color:#1a2a4a}
+.app-header h1{font-size:14px;font-weight:700;color:#e8efff;letter-spacing:0.3px;white-space:nowrap}
+.hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hbtn{background:#2d3f6e;border:1px solid #3d5090;color:#c8d8ff;padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:'Roboto',sans-serif;font-weight:500;white-space:nowrap}
+.hbtn:hover{background:#3d5090}
+.hbtn.green{background:#14532d;border-color:#1a8040;color:#86efac}
+.hbtn.green:hover{background:#1a6e38}
+.hbtn.theme-btn{background:#374151;border-color:#4b5563;color:#e0e0e0;font-size:13px;padding:3px 9px}
+.hbtn.theme-btn:hover{background:#4b5563}
+.hbtn.danger{background:#7f1d1d;border-color:#dc2626;color:#fca5a5}
+.hbtn.danger:hover{background:#991b1b}
+.tr-lbl{color:#8898bb;font-size:11px}
+.tr-val{font-weight:700;font-family:'Roboto Mono',monospace;font-size:12px}
+.pos{color:#16a34a}.neg{color:#dc2626}.warn{color:#d97706}
+
+/* Auth overlay */
+.auth-overlay{position:fixed;inset:0;background:var(--bg-page);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:20px}
+.auth-box{background:var(--bg-card);border:1px solid var(--border-modal);border-radius:12px;padding:40px;text-align:center;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.auth-box h2{font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.auth-box p{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+.auth-box .logo{font-size:48px;margin-bottom:16px}
+.google-btn{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dadce0;border-radius:6px;padding:10px 20px;font-size:14px;font-weight:500;color:#3c4043;cursor:pointer;font-family:'Roboto',sans-serif;transition:background 0.15s;width:100%;justify-content:center}
+.google-btn:hover{background:#f8f9fa;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.google-btn svg{width:18px;height:18px;flex-shrink:0}
+
+/* Sync status */
+.sync-bar{background:#1a2a3a;padding:3px 14px;display:flex;align-items:center;justify-content:space-between;font-size:10px;min-height:22px}
+html[data-theme="dark"] .sync-bar{background:#080c14}
+.sync-status{display:flex;align-items:center;gap:6px;color:#7a9abb}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0;transition:background 0.3s}
+.sync-dot.synced{background:#4ade80}
+.sync-dot.saving{background:#fbbf24;animation:pulse 0.8s infinite}
+.sync-dot.error{background:#f87171}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.sync-user{color:#4a6a8a;font-size:10px}
+
+.months-container{padding:8px}
+.month-block{margin-bottom:8px;border-radius:8px;overflow:hidden;border:2px solid transparent;box-shadow:var(--shadow)}
+
+.m0{--mc:#e8f5e9;--mb:#4caf50;--mt:#1b5e20;--ml:#f1faf1;--mh:#2e7d32}
+.m1{--mc:#e3f2fd;--mb:#2196f3;--mt:#0d47a1;--ml:#f0f8ff;--mh:#1565c0}
+.m2{--mc:#f3e5f5;--mb:#9c27b0;--mt:#4a148c;--ml:#faf0fb;--mh:#6a1b9a}
+.m3{--mc:#fff8e1;--mb:#ffc107;--mt:#7c5200;--ml:#fffdf0;--mh:#f57f17}
+.m4{--mc:#fce4ec;--mb:#e91e63;--mt:#880e4f;--ml:#fff0f5;--mh:#c2185b}
+.m5{--mc:#e0f7fa;--mb:#00bcd4;--mt:#006064;--ml:#f0fdff;--mh:#00838f}
+.m6{--mc:#fff3e0;--mb:#ff9800;--mt:#7c3500;--ml:#fffaf0;--mh:#e65100}
+.m7{--mc:#e8eaf6;--mb:#3f51b5;--mt:#1a237e;--ml:#f2f3fc;--mh:#283593}
+.m8{--mc:#f1f8e9;--mb:#8bc34a;--mt:#33691e;--ml:#f7fbf0;--mh:#558b2f}
+.m9{--mc:#fce4f0;--mb:#e91e8c;--mt:#7b003c;--ml:#fff5f9;--mh:#ad1457}
+.m10{--mc:#f9fbe7;--mb:#cddc39;--mt:#4e5b00;--ml:#fcfdf0;--mh:#827717}
+.m11{--mc:#e1f5fe;--mb:#03a9f4;--mt:#01579b;--ml:#f0faff;--mh:#0277bd}
+
+html[data-theme="dark"] .m0{--mc:#162616;--ml:#0f1f0f;--mt:#6ee06e}
+html[data-theme="dark"] .m1{--mc:#161626;--ml:#0f0f1f;--mt:#7ab3ff}
+html[data-theme="dark"] .m2{--mc:#261626;--ml:#1f0f1f;--mt:#e07ae0}
+html[data-theme="dark"] .m3{--mc:#262216;--ml:#1f1d0f;--mt:#ffd070}
+html[data-theme="dark"] .m4{--mc:#261616;--ml:#1f0f0f;--mt:#ff8a8a}
+html[data-theme="dark"] .m5{--mc:#162626;--ml:#0f1f1f;--mt:#5eead4}
+html[data-theme="dark"] .m6{--mc:#261c10;--ml:#1f1408;--mt:#ffb347}
+html[data-theme="dark"] .m7{--mc:#161a26;--ml:#0f1318;--mt:#a0c4ff}
+html[data-theme="dark"] .m8{--mc:#1c2616;--ml:#121f0f;--mt:#86efac}
+html[data-theme="dark"] .m9{--mc:#261622;--ml:#1f0f16;--mt:#f9a8d4}
+html[data-theme="dark"] .m10{--mc:#242616;--ml:#1a1f0f;--mt:#d9f99d}
+html[data-theme="dark"] .m11{--mc:#162226;--ml:#0f1a1f;--mt:#7dd3fc}
+
+.month-block{border-color:var(--mb)}
+.month-header{background:var(--mh);padding:8px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;gap:10px}
+.month-header:hover{filter:brightness(1.1)}
+.month-left{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.month-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:0.2px;white-space:nowrap}
+.month-stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.mstat{display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap}
+.mstat-lbl{color:rgba(255,255,255,0.6);font-weight:400;text-transform:uppercase;letter-spacing:0.4px;font-size:9px}
+.mstat-val{font-family:'Roboto Mono',monospace;font-weight:700;color:#fff;font-size:11px}
+.mstat-val.mpos{color:#c8e6c9}.mstat-val.mneg{color:#ffcdd2}.mstat-val.mwarn{color:#ffe082}.mstat-val.mneutral{color:rgba(255,255,255,0.85)}
+.mstat-sep{color:rgba(255,255,255,0.2);font-size:10px}
+.month-arrow{font-size:11px;color:rgba(255,255,255,0.8);transition:transform 0.15s;flex-shrink:0}
+.month-arrow.open{transform:rotate(90deg)}
+.month-body{display:none}.month-body.open{display:block}
+
+.week-block{border-bottom:1px solid var(--mb)}.week-block:last-child{border-bottom:none}
+.week-label-row{background:var(--mc);padding:5px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-main)}
+.week-lbl{font-size:9px;color:var(--mt);font-weight:700;letter-spacing:0.5px;opacity:0.7;text-transform:uppercase}
+.week-right{display:flex;align-items:center;gap:6px}
+.week-min-lbl{font-size:9px;font-weight:700;letter-spacing:0.5px;color:var(--mt);opacity:0.6;text-transform:uppercase}
+.week-min-badge{font-size:13px;font-family:'Roboto Mono',monospace;font-weight:800;letter-spacing:-0.3px}
+.wmin-green{color:#16a34a}.wmin-yellow{color:#d97706}.wmin-red{color:#dc2626}
+html[data-theme="dark"] .wmin-green{color:#4ade80}
+html[data-theme="dark"] .wmin-yellow{color:#fbbf24}
+html[data-theme="dark"] .wmin-red{color:#f87171}
+
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.day-col{border-right:1px solid var(--border-main);display:flex;flex-direction:column;background:var(--bg-card)}.day-col:last-of-type{border-right:none}
+.day-hdr{padding:4px 5px;text-align:center;border-bottom:1px solid var(--border-main);background:var(--mc)}
+.dname{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mt);opacity:0.6;font-weight:500}
+.ddate{font-size:13px;font-weight:700;color:var(--mt)}
+.day-hdr.past{background:var(--bg-past-hdr)!important}
+.day-hdr.past .dname{color:var(--text-past-name)!important;opacity:1}
+.day-hdr.past .ddate{color:var(--text-past-day)!important}
+.day-col.past-col{background:var(--bg-past-col)}
+.day-col.past-col .col-hdr-row{background:var(--bg-past-colhdr);color:var(--text-muted)}
+.day-col.past-col .tx-list{background:var(--bg-past-col)}
+.day-col.past-col .day-bal-row{background:var(--bg-past-colhdr)}
+.day-hdr.today{outline:3px solid var(--mb);outline-offset:-2px;z-index:2}
+.day-hdr.today .ddate{color:var(--mh);font-size:14px}
+html[data-theme="dark"] .day-hdr.today .ddate{color:var(--mt)}
+.day-col.blank-day{background:var(--bg-blank)}
+.day-col.blank-day .day-hdr{background:var(--bg-blank-hdr)!important;cursor:default}
+.day-col.blank-day .day-hdr:hover{filter:none}
+.day-col.blank-day .dname{color:var(--text-blank)!important;opacity:1}
+.day-col.blank-day .ddate{color:var(--text-blank)!important}
+.day-col.blank-day .col-hdr-row{background:var(--bg-blank);color:var(--text-blank)}
+.day-col.blank-day .tx-list{background:var(--bg-blank);flex:1}
+.day-col.blank-day .day-bal-row{background:var(--bg-blank)}
+.day-col.blank-day .bal-lbl,.day-col.blank-day .bal-val{color:var(--text-blank);cursor:default}
+.day-col.blank-day .add-row{display:none}
+
+.col-hdr-row{display:grid;grid-template-columns:1fr 62px 18px;padding:2px 4px;background:var(--bg-col-hdr);font-size:9px;color:var(--text-muted);border-bottom:1px solid var(--border-col);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.tx-list{flex:1}
+.tx-row{display:grid;grid-template-columns:1fr 62px 18px;padding:2px 4px;border-bottom:1px solid var(--border-col);align-items:center;min-height:20px}
+.tx-row:hover{background:var(--tx-hover)}
+.tx-row.paid-past{opacity:0.4;background:#f0f0f4!important}
+html[data-theme="dark"] .tx-row.paid-past{background:#111118!important}
+.tx-row.paid-future{background:#f0fdf4!important;border-left:3px solid #4ade80}
+html[data-theme="dark"] .tx-row.paid-future{background:#0d1f14!important}
+.tx-row.paid-future .tx-nm{color:#15803d!important}
+html[data-theme="dark"] .tx-row.paid-future .tx-nm{color:#4ade80!important}
+.tx-row.unpaid-past{background:var(--unpaid-past-bg)!important;border-left:3px solid var(--unpaid-past-border)}
+.tx-row.unpaid-past .tx-nm{color:var(--unpaid-past-nm)!important;font-weight:700}
+.tx-row.unpaid-past .tx-amt{color:var(--unpaid-past-amt)!important}
+.tx-row.opening-bal{background:#fffbeb!important;border-left:3px solid #f59e0b}
+html[data-theme="dark"] .tx-row.opening-bal{background:#1f1a08!important;border-left-color:#d97706}
+.tx-row.opening-bal .tx-nm{color:#92400e!important;font-style:italic}
+html[data-theme="dark"] .tx-row.opening-bal .tx-nm{color:#fbbf24!important}
+.tx-row.opening-bal .tx-amt{color:#92400e!important;font-weight:700}
+html[data-theme="dark"] .tx-row.opening-bal .tx-amt{color:#fbbf24!important}
+
+.tx-nm{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500}
+.tx-nm:hover{background:rgba(0,0,0,0.05)}
+html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
+.tx-amt{font-size:10px;text-align:right;font-family:'Roboto Mono',monospace;font-weight:700}
+.tx-amt.neg{color:#dc2626}.tx-amt.pos{color:#16a34a}
+html[data-theme="dark"] .tx-amt.neg{color:#f87171}
+html[data-theme="dark"] .tx-amt.pos{color:#4ade80}
+.tx-chk{display:flex;align-items:center;justify-content:center}
+.tx-chk input{width:11px;height:11px;cursor:pointer;accent-color:#16a34a}
+.add-row{text-align:center;cursor:pointer;font-size:16px;color:var(--add-row-color);padding:2px;line-height:1;background:var(--bg-add-row)}
+.add-row:hover{color:var(--add-row-hover);background:var(--tx-hover)}
+.day-bal-row{padding:3px 5px;border-top:1px solid var(--border-col);display:flex;justify-content:space-between;background:var(--bal-row-bg)}
+.bal-lbl{font-size:9px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.bal-val{font-size:10px;font-weight:700;font-family:'Roboto Mono',monospace}
+
+.cp-pay{background:#f0fdf4}.cp-gas{background:#f0fdf4}.cp-sub{background:#eff6ff}.cp-ins{background:#fffbeb}
+.cp-loan{background:#faf5ff}.cp-cc{background:#f5f3ff}.cp-util{background:#f0fdfa}.cp-rent{background:#fff1f2}
+.cp-medical{background:#fff7ed}.cp-food{background:#f7fee7}.cp-other{background:#fafafa}
+.cp-pay .tx-nm{color:#166534}.cp-gas .tx-nm{color:#166534}.cp-sub .tx-nm{color:#1e40af}.cp-ins .tx-nm{color:#92400e}
+.cp-loan .tx-nm{color:#6b21a8}.cp-cc .tx-nm{color:#4c1d95}.cp-util .tx-nm{color:#134e4a}.cp-rent .tx-nm{color:#9f1239}
+.cp-medical .tx-nm{color:#9a3412}.cp-food .tx-nm{color:#3f6212}.cp-other .tx-nm{color:#374151}
+html[data-theme="dark"] .cp-pay{background:#132213}html[data-theme="dark"] .cp-gas{background:#132213}
+html[data-theme="dark"] .cp-sub{background:#111e2e}html[data-theme="dark"] .cp-ins{background:#2a1e0c}
+html[data-theme="dark"] .cp-loan{background:#1e0e2a}html[data-theme="dark"] .cp-cc{background:#180e2a}
+html[data-theme="dark"] .cp-util{background:#0c1c1c}html[data-theme="dark"] .cp-rent{background:#2a0e0e}
+html[data-theme="dark"] .cp-medical{background:#2a1408}html[data-theme="dark"] .cp-food{background:#121c0e}
+html[data-theme="dark"] .cp-other{background:#161616}
+html[data-theme="dark"] .cp-pay .tx-nm{color:#86efac}html[data-theme="dark"] .cp-gas .tx-nm{color:#86efac}
+html[data-theme="dark"] .cp-sub .tx-nm{color:#7ab3ff}html[data-theme="dark"] .cp-ins .tx-nm{color:#ffb347}
+html[data-theme="dark"] .cp-loan .tx-nm{color:#d17ae0}html[data-theme="dark"] .cp-cc .tx-nm{color:#a78bfa}
+html[data-theme="dark"] .cp-util .tx-nm{color:#5eead4}html[data-theme="dark"] .cp-rent .tx-nm{color:#fca5a5}
+html[data-theme="dark"] .cp-medical .tx-nm{color:#fb923c}html[data-theme="dark"] .cp-food .tx-nm{color:#a3e635}
+html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
+
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:500}
+.modal{background:var(--bg-modal);border:1px solid var(--border-modal);border-radius:10px;padding:20px;min-width:290px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.25);font-family:'Roboto',sans-serif}
+.modal h3{font-size:13px;margin-bottom:12px;color:var(--text-primary);font-weight:700}
+.modal label{display:block;font-size:10px;color:var(--text-muted);margin-bottom:3px;margin-top:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
+.modal input,.modal select{width:100%;background:var(--bg-card2);border:1px solid var(--border-modal);color:var(--text-primary);padding:6px 9px;border-radius:5px;font-size:12px;font-family:'Roboto',sans-serif}
+.modal input[type=checkbox]{width:auto}
+.modal-note{font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5}
+.mbtns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.mbtns button{padding:6px 16px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border-modal);background:var(--bg-card2);color:var(--text-primary);font-weight:600;font-family:'Roboto',sans-serif}
+.mbtns .mbsave{background:#1e4d2e;border-color:#1a8040;color:#86efac}
+.mbtns .mbdel{background:#7f1d1d;border-color:#dc2626;color:#fca5a5}
+.mbtns button:hover{filter:brightness(1.1)}
+
+#app{display:none}
+</style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <div class="logo">💰</div>
+    <h2>Rowles Financial Planner</h2>
+    <p>Sign in with your Google account to access your 2026 financial planner. Your data syncs automatically across all your devices.</p>
+    <button class="google-btn" id="btn-google-signin">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Sign in with Google
+    </button>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app">
+  <div class="app-header">
+    <h1>💰 Rowles Financial Planner 2026</h1>
+    <div class="hdr-right">
+      <span class="tr-lbl">Year Low:</span>
+      <span class="tr-val warn" id="yearlow-hdr">—</span>
+      <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
+      <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
+      <button class="hbtn danger" id="btn-signout">Sign Out</button>
+    </div>
+  </div>
+  <div class="sync-bar">
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-text">Connecting...</span>
+    </div>
+    <span class="sync-user" id="sync-user"></span>
+  </div>
+  <div id="months-container" class="months-container"></div>
+</div>
+
+<div id="modal-root"></div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── FIREBASE CONFIG ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyCVWopx0HfwDm0lsGFvHo8iBUKhyW9n-fU",
+  authDomain: "rowles-financial-planner.firebaseapp.com",
+  projectId: "rowles-financial-planner",
+  storageBucket: "rowles-financial-planner.firebasestorage.app",
+  messagingSenderId: "995503000850",
+  appId: "1:995503000850:web:52e9db38877b26c62837cb"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// ── CONSTANTS ────────────────────────────────────────────────
+const YEAR = 2026;
+const DAYS_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const CATS = ['PAY','GAS','SUB','INS','LOAN','CC','UTIL','RENT','MEDICAL','FOOD','OTHER'];
+const CAT_CLS = {PAY:'cp-pay',GAS:'cp-gas',SUB:'cp-sub',INS:'cp-ins',LOAN:'cp-loan',CC:'cp-cc',UTIL:'cp-util',RENT:'cp-rent',MEDICAL:'cp-medical',FOOD:'cp-food',OTHER:'cp-other'};
+const OPENING_KEY = '__opening_2025__';
+
+// ── CSV SEED DATA ────────────────────────────────────────────
+const CSV_DATA={"2026-01-01":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"[CC - DSW]","amount":-61.0,"paid":true},{"name":"UTIL - Power","amount":-158.8,"paid":true},{"name":"UTIL - FEES","amount":-10.49,"paid":true},{"name":"UTIL - Gas","amount":-88.69,"paid":true},{"name":"CS - Heather","amount":-296.0,"paid":true},{"name":"RENT","amount":-2750.0,"paid":true}],"2026-01-03":[{"name":"Groceries","amount":-156.35,"paid":true},{"name":"Josh & Carla RENT","amount":1252.69,"paid":true},{"name":"UTIL - Water","amount":-47.97,"paid":true},{"name":"UTIL - Sewer","amount":-32.21,"paid":true},{"name":"UTIL - Trash","amount":-18.0,"paid":true},{"name":"CS - Josh","amount":122.81,"paid":true},{"name":"Waiver","amount":-7.5,"paid":true}],"2026-01-05":[{"name":"Nic Stuff","amount":200.0,"paid":true},{"name":"Nic Stuff","amount":-180.0,"paid":true},{"name":"Medical - Keith","amount":-45.0,"paid":true},{"name":"HDX Tubs","amount":-38.43,"paid":true},{"name":"Water Filter","amount":-18.18,"paid":true}],"2026-01-06":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"LOAN - OneMain","amount":-335.0,"paid":true},{"name":"[SUB - Amazon]","amount":-16.04,"paid":true},{"name":"Snack","amount":-4.18,"paid":true},{"name":"Vince Game","amount":-50.0,"paid":true}],"2026-01-07":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":true},{"name":"Snack","amount":-3.29,"paid":true},{"name":"Snack","amount":-5.68,"paid":true},{"name":"Snack","amount":-3.28,"paid":true}],"2026-01-02":[{"name":"PAY - Keagan CS","amount":-80.0,"paid":true}],"2026-01-08":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-11.01,"paid":true},{"name":"GAS - Keith","amount":-44.01,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"KLR - Whatever","amount":-64.52,"paid":true}],"2026-01-09":[{"name":"May Food","amount":-34.95,"paid":true},{"name":"JNT - Dinner","amount":-36.38,"paid":true},{"name":"KFR - Tree","amount":-50.0,"paid":true},{"name":"Snack","amount":-2.19,"paid":true},{"name":"Snack","amount":-5.38,"paid":true},{"name":"Snack","amount":-6.18,"paid":true},{"name":"Groceries","amount":-38.96,"paid":true}],"2026-01-10":[{"name":"Groceries","amount":-256.8,"paid":true},{"name":"KLR Fraud","amount":-2.0,"paid":true}],"2026-01-12":[{"name":"CC - Credit One","amount":-44.0,"paid":true}],"2026-01-13":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"[UTIL - Internet]","amount":-74.58,"paid":true}],"2026-01-14":[{"name":"Snack","amount":-4.58,"paid":true},{"name":"KFR - Payment","amount":69.79,"paid":true}],"2026-01-15":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-32.5,"paid":true},{"name":"GAS - Keith","amount":-50.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"CS - Heather","amount":-296.0,"paid":true},{"name":"KFR - Payment","amount":-70.0,"paid":true}],"2026-01-16":[{"name":"KLR - Something","amount":10.0,"paid":true},{"name":"KLR - Something","amount":-9.95,"paid":true},{"name":"KLR - Pen","amount":-60.0,"paid":true}],"2026-01-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":true},{"name":"Groceries","amount":-338.0,"paid":true},{"name":"Sanck","amount":-6.27,"paid":true}],"2026-01-18":[{"name":"[INS - Cars]","amount":-196.88,"paid":true},{"name":"JNT - Boys Dinner","amount":-23.18,"paid":true}],"2026-01-20":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"LOAN - Citi Bank","amount":-50.0,"paid":true}],"2026-01-22":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-26.5,"paid":true},{"name":"GAS - Keith","amount":-50.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"JNT - Snack","amount":-6.28,"paid":true}],"2026-01-23":[{"name":"Nic","amount":200.0,"paid":true},{"name":"Nic","amount":-180.0,"paid":true}],"2026-01-24":[{"name":"CC - Kroger","amount":-372.0,"paid":true},{"name":"Groceries","amount":-205.57,"paid":true},{"name":"Groceries","amount":-23.94,"paid":true}],"2026-01-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":true}],"2026-01-26":[{"name":"[UTIL - Phones]","amount":-187.67,"paid":true}],"2026-01-27":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"[SUB - Hulu]","amount":-19.99,"paid":true}],"2026-01-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":true},{"name":"KFR - Pen","amount":-90.0,"paid":true}],"2026-01-29":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-30.0,"paid":true},{"name":"GAS - Keith","amount":0.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"[SUB - Hulu]","amount":-19.99,"paid":true}],"2026-01-30":[{"name":"May Food","amount":0.0,"paid":true}],"2026-01-31":[{"name":"Josh & Carla RENT","amount":1050.0,"paid":true},{"name":"CC - C1 Keagan","amount":-68.0,"paid":true},{"name":"UTIL - Water","amount":-46.45,"paid":true},{"name":"UTIL - Sewer","amount":-30.69,"paid":true},{"name":"UTIL - Trash","amount":-18.0,"paid":true},{"name":"CS - Josh","amount":350.0,"paid":true},{"name":"[SUB - Playstation]","amount":-9.99,"paid":true},{"name":"Waiver","amount":-7.5,"paid":true},{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":true},{"name":"Groceries","amount":-283.29,"paid":true}],"2026-02-01":[{"name":"[CC - DSW]","amount":-61.0,"paid":true},{"name":"UTIL - Power","amount":-137.52,"paid":true},{"name":"UTIL - FEES","amount":-10.49,"paid":true},{"name":"UTIL - Gas","amount":-116.97,"paid":true},{"name":"CS - Heather","amount":-296.0,"paid":true},{"name":"RENT","amount":-2545.0,"paid":true}],"2026-02-02":[{"name":"Medical - Keith","amount":-45.0,"paid":true},{"name":"Medical - Keagan","amount":-50.0,"paid":true},{"name":"Medical - Keagan","amount":-50.0,"paid":true}],"2026-02-03":[{"name":"Learning Bridge","amount":-40.0,"paid":true}],"2026-02-05":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":0.0,"paid":true},{"name":"GAS - Keith","amount":-50.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"LOAN - OneMain","amount":-335.0,"paid":true},{"name":"[SUB - Amazon]","amount":-16.04,"paid":true}],"2026-02-06":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":true},{"name":"JNT - Dinner","amount":-50.78,"paid":true}],"2026-02-07":[{"name":"Groceries","amount":-72.4,"paid":true},{"name":"JNT - Dinner","amount":-24.0,"paid":true}],"2026-02-10":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"KLR - Pen","amount":-60.0,"paid":true}],"2026-02-11":[{"name":"CC - Credit One","amount":-44.0,"paid":true},{"name":"May Food","amount":-55.27,"paid":true},{"name":"Nic Pens","amount":-190.0,"paid":true}],"2026-02-12":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-31.01,"paid":true},{"name":"GAS - Keith","amount":-30.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true}],"2026-02-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":true},{"name":"Nic Pens","amount":200.0,"paid":true},{"name":"KLR - Snack","amount":-2.19,"paid":true},{"name":"Groceries","amount":-25.79,"paid":true}],"2026-02-14":[{"name":"Groceries","amount":-326.11,"paid":true},{"name":"Casper Fundraiser","amount":-3.79,"paid":true},{"name":"JNT - Marcos","amount":-44.08,"paid":true}],"2026-02-15":[{"name":"CS - Heather","amount":-296.0,"paid":true}],"2026-02-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":true},{"name":"Vince Snack","amount":-4.78,"paid":true},{"name":"KLR ?","amount":-7.0,"paid":true},{"name":"KLR ?","amount":-7.69,"paid":true}],"2026-02-19":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-30.02,"paid":true},{"name":"GAS - Keith","amount":0.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"[INS - Cars]","amount":-206.88,"paid":true},{"name":"Snack","amount":-6.72,"paid":true}],"2026-02-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":true},{"name":"KLR Snack","amount":-2.49,"paid":true}],"2026-02-21":[{"name":"Groceries","amount":0.0,"paid":true}],"2026-02-22":[{"name":"McDonalds","amount":-26.0,"paid":true},{"name":"Tally","amount":-20.7,"paid":true}],"2026-02-23":[{"name":"CS - Heather","amount":-150.0,"paid":true}],"2026-02-24":[{"name":"CC - Kroger","amount":-372.0,"paid":true},{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"Snack","amount":-2.19,"paid":true},{"name":"GAS - Keagan?","amount":-15.06,"paid":true}],"2026-02-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":true},{"name":"JNT - Dinner","amount":-26.92,"paid":true},{"name":"May Vet","amount":-508.54,"paid":true},{"name":"Snack","amount":-5.48,"paid":true}],"2026-02-26":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-30.15,"paid":true},{"name":"GAS - Keith","amount":-50.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"[UTIL - Phones]","amount":-197.63,"paid":true}],"2026-02-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":true},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false},{"name":"Amazon?","amount":-3.95,"paid":true},{"name":"Snack","amount":-2.19,"paid":true}],"2026-02-28":[{"name":"Groceries","amount":-332.92,"paid":true},{"name":"LOAN - Subaru","amount":-400.0,"paid":true},{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":true},{"name":"Josh & Carla RENT","amount":1050.0,"paid":true},{"name":"UTIL - Water","amount":-42.2,"paid":true},{"name":"UTIL - Sewer","amount":-26.44,"paid":true},{"name":"UTIL - Trash","amount":-18.0,"paid":true},{"name":"CS - Josh","amount":350.0,"paid":true},{"name":"Waiver","amount":-7.5,"paid":true}],"2026-03-01":[{"name":"UTIL - Power","amount":-142.33,"paid":true},{"name":"UTIL - FEES","amount":-10.49,"paid":true},{"name":"UTIL - Gas","amount":-125.15,"paid":true},{"name":"CS - Heather","amount":-296.0,"paid":true},{"name":"Medical - Keith","amount":-45.0,"paid":true},{"name":"Medical - Keagan","amount":-50.0,"paid":true},{"name":"[CC - DSW]","amount":-61.0,"paid":true},{"name":"CC - C1 Keagan","amount":-68.0,"paid":true},{"name":"RENT","amount":-2545.0,"paid":true}],"2026-03-03":[{"name":"Learning Bridge","amount":-40.0,"paid":true}],"2026-03-04":[{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false},{"name":"Nic Pens","amount":-190.0,"paid":true}],"2026-03-05":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-30.05,"paid":true},{"name":"GAS - Keith","amount":-25.03,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"KFR - Snack","amount":-6.68,"paid":true}],"2026-03-06":[{"name":"LOAN - OneMain","amount":-335.0,"paid":true},{"name":"[SUB - Amazon]","amount":-16.04,"paid":true},{"name":"Snack","amount":-5.72,"paid":true}],"2026-03-07":[{"name":"Groceries","amount":-316.0,"paid":true},{"name":"[SUB - TY Music]","amount":-16.99,"paid":true},{"name":"May Food","amount":0.0,"paid":true}],"2026-03-09":[{"name":"KLR - Lunch?","amount":-15.41,"paid":true},{"name":"JNT - Water Filter","amount":-17.89,"paid":true},{"name":"GAS - Keith","amount":-50.02,"paid":true}],"2026-03-10":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"Nic Pens","amount":200.0,"paid":true},{"name":"KFR - Snack","amount":-1.39,"paid":true},{"name":"Vince - Trombone","amount":-28.82,"paid":true}],"2026-03-11":[{"name":"KLR - Snack","amount":-4.88,"paid":true}],"2026-03-12":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-40.01,"paid":true},{"name":"GAS - Keith","amount":-48.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"CC - Credit One","amount":-44.0,"paid":true}],"2026-03-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":true},{"name":"KFR - Snack","amount":-2.79,"paid":true},{"name":"KLR - Snack","amount":-5.38,"paid":true},{"name":"KLR - Pen","amount":-60.0,"paid":true}],"2026-03-14":[{"name":"Groceries","amount":-286.54,"paid":true},{"name":"SCHOOL?","amount":-30.0,"paid":true},{"name":"JNT Taco Bell","amount":-35.23,"paid":true},{"name":"Sponsor In","amount":490.25,"paid":true},{"name":"KFR - Snack","amount":-2.19,"paid":true},{"name":"Amazon?","amount":-9.24,"paid":true}],"2026-03-15":[{"name":"CS - Heather","amount":-296.0,"paid":true},{"name":"Amazon?","amount":-12.99,"paid":true},{"name":"Sponsor Out","amount":-529.65,"paid":true}],"2026-03-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":true},{"name":"Learning Bridge","amount":-43.0,"paid":true},{"name":"[SUB - Netflix]","amount":-24.99,"paid":true},{"name":"Snack","amount":-4.68,"paid":true}],"2026-03-19":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-40.0,"paid":true},{"name":"GAS - Keith","amount":-60.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"Vince Band","amount":-20.0,"paid":true},{"name":"KLR - Melissa","amount":-50.0,"paid":true}],"2026-03-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":true},{"name":"SNack","amount":-2.59,"paid":true},{"name":"[INS - Cars]","amount":-206.83,"paid":true},{"name":"JNT - Dinner","amount":-39.93,"paid":true}],"2026-03-21":[{"name":"Groceries","amount":-341.18,"paid":true}],"2026-03-23":[{"name":"Nic Pens","amount":-190.0,"paid":true}],"2026-03-24":[{"name":"CC - Kroger","amount":-372.0,"paid":true},{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"KFR - TD","amount":-249.0,"paid":true}],"2026-03-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":true},{"name":"Snack","amount":-2.19,"paid":true},{"name":"Snack","amount":-3.88,"paid":true}],"2026-03-26":[{"name":"PAY - Keagan","amount":538.91,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-40.01,"paid":true},{"name":"GAS - Keith","amount":0.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"[UTIL - Phones]","amount":-205.63,"paid":true},{"name":"Nic Pens","amount":200.0,"paid":true},{"name":"KFR - TD","amount":250.0,"paid":true}],"2026-03-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":true},{"name":"KLR - Food","amount":-9.15,"paid":true},{"name":"Snack","amount":-2.69,"paid":true},{"name":"Snack","amount":-3.19,"paid":true}],"2026-03-28":[{"name":"Groceries","amount":-103.8,"paid":true},{"name":"LOAN - Subaru","amount":-400.0,"paid":true},{"name":"Snack","amount":-3.08,"paid":true}],"2026-03-29":[{"name":"JNT - Dinner","amount":-37.84,"paid":true}],"2026-03-30":[{"name":"[SUB - Playstation]","amount":-9.99,"paid":false},{"name":"KFR - Food","amount":-6.86,"paid":true},{"name":"JNT - Dinner","amount":-40.82,"paid":true},{"name":"KLR - Lunch","amount":-10.25,"paid":true}],"2026-03-31":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":true},{"name":"Josh & Carla RENT","amount":1050.0,"paid":true},{"name":"UTIL - Water","amount":-48.96,"paid":true},{"name":"UTIL - Sewer","amount":-33.2,"paid":true},{"name":"UTIL - Trash","amount":-18.0,"paid":true},{"name":"CS - Josh","amount":350.0,"paid":true},{"name":"Waiver","amount":-7.5,"paid":true},{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"CC - C1 Keagan","amount":-68.0,"paid":true}],"2026-04-01":[{"name":"UTIL - Power","amount":-156.29,"paid":true},{"name":"UTIL - FEES","amount":-10.49,"paid":true},{"name":"UTIL - Gas","amount":-133.66,"paid":true},{"name":"CS - Heather","amount":-296.0,"paid":true},{"name":"May - Meds","amount":-55.24,"paid":true},{"name":"Medical - Keagan","amount":-50.0,"paid":true},{"name":"[CC - DSW]","amount":-61.0,"paid":true},{"name":"RENT","amount":-2545.0,"paid":true},{"name":"Groceries","amount":-34.94,"paid":true},{"name":"KFR - Photos","amount":-40.0,"paid":true}],"2026-04-02":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-30.0,"paid":true},{"name":"GAS - Keith","amount":-50.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true}],"2026-04-03":[{"name":"Snack","amount":-3.98,"paid":true}],"2026-04-04":[{"name":"Groceries","amount":-166.26,"paid":true},{"name":"May Food","amount":0.0,"paid":true},{"name":"Edwin Birthday","amount":-61.42,"paid":true}],"2026-04-05":[{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":true}],"2026-04-06":[{"name":"LOAN - OneMain","amount":-335.0,"paid":true},{"name":"[SUB - Amazon]","amount":-16.04,"paid":true}],"2026-04-07":[{"name":"Learning Bridge","amount":0.0,"paid":true},{"name":"[SUB - TY Music]","amount":-16.99,"paid":true}],"2026-04-08":[{"name":"KFR Birthday","amount":100.0,"paid":true},{"name":"KFR Birthday","amount":-100.0,"paid":true},{"name":"Snack","amount":-9.37,"paid":true},{"name":"Snack","amount":-6.28,"paid":true},{"name":"Nic Pens","amount":-250.0,"paid":true},{"name":"KLR Sub","amount":-41.79,"paid":true}],"2026-04-09":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-45.01,"paid":true},{"name":"GAS - Keith","amount":0.0,"paid":true},{"name":"PAY - Keagan CS","amount":-38.0,"paid":true},{"name":"Coffee","amount":-13.89,"paid":true}],"2026-04-11":[{"name":"Groceries","amount":-303.37,"paid":true},{"name":"JNT - Tally Ticket","amount":-25.88,"paid":true}],"2026-04-12":[{"name":"CC - Credit One","amount":-44.0,"paid":true},{"name":"KLR - Food","amount":-12.51,"paid":false}],"2026-04-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":true},{"name":"Nic Pens","amount":200.0,"paid":true},{"name":"Taxes","amount":153.0,"paid":true}],"2026-04-14":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"Snack","amount":-1.39,"paid":true}],"2026-04-15":[{"name":"Taxes","amount":-438.0,"paid":true},{"name":"Apple TV","amount":-12.99,"paid":true},{"name":"UBER??","amount":-9.99,"paid":true},{"name":"KLR - Food","amount":-5.58,"paid":true}],"2026-04-16":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-40.0,"paid":true},{"name":"GAS - Keith","amount":0.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true}],"2026-04-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":true},{"name":"[SUB - Netflix]","amount":-24.99,"paid":true},{"name":"CS - Heather","amount":-296.0,"paid":true}],"2026-04-18":[{"name":"Groceries","amount":-146.11,"paid":true},{"name":"[INS - Cars]","amount":-206.83,"paid":true},{"name":"May Food","amount":0.0,"paid":true},{"name":"JNT - Dinner Nite","amount":-40.04,"paid":true}],"2026-04-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":true},{"name":"JNT - Movie Nite","amount":-45.0,"paid":true}],"2026-04-21":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"Snack","amount":-6.18,"paid":true}],"2026-04-23":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-40.01,"paid":true},{"name":"GAS - Keith","amount":-50.04,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true}],"2026-04-24":[{"name":"CC - Kroger","amount":-372.0,"paid":true},{"name":"Snack","amount":-2.59,"paid":true},{"name":"McDonalds","amount":-18.81,"paid":true}],"2026-04-25":[{"name":"Groceries","amount":-284.65,"paid":true},{"name":"LOAN - Paypal","amount":-45.0,"paid":true},{"name":"KLR Emissions","amount":-20.0,"paid":true}],"2026-04-26":[{"name":"[UTIL - Phones]","amount":-187.55,"paid":true},{"name":"JNT - Dinner","amount":-18.59,"paid":true}],"2026-04-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":true},{"name":"JNT - Dinner","amount":-60.87,"paid":true}],"2026-04-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":true},{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"KLR - Tag","amount":-29.6,"paid":true},{"name":"JNT - Lunch","amount":-35.86,"paid":true},{"name":"Nic","amount":-190.0,"paid":true}],"2026-04-29":[{"name":"Josh & Carla RENT","amount":1050.0,"paid":true},{"name":"UTIL - Water","amount":-48.52,"paid":true},{"name":"UTIL - Sewer","amount":-32.76,"paid":true},{"name":"UTIL - Trash","amount":-18.0,"paid":true},{"name":"CS - Josh","amount":350.0,"paid":true},{"name":"Waiver","amount":-7.5,"paid":true},{"name":"Snack","amount":-2.49,"paid":true},{"name":"Snack","amount":-1.39,"paid":true},{"name":"Snack","amount":-2.4,"paid":true},{"name":"State Parks","amount":-76.3,"paid":true}],"2026-04-30":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-40.0,"paid":true},{"name":"GAS - Keith","amount":-50.02,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":true},{"name":"CC - C1 Keagan","amount":-68.0,"paid":true},{"name":"[SUB - Playstation]","amount":0.0,"paid":true},{"name":"Nic","amount":200.0,"paid":true},{"name":"Thermo Covers","amount":-6.34,"paid":true}],"2026-05-01":[{"name":"UTIL - Power","amount":-163.39,"paid":true},{"name":"UTIL - FEES","amount":-10.49,"paid":true},{"name":"UTIL - Gas","amount":-106.05,"paid":true},{"name":"CS - Heather","amount":-296.0,"paid":true},{"name":"Medical - Keith","amount":0.0,"paid":true},{"name":"Medical - Keagan","amount":-50.0,"paid":true},{"name":"[CC - DSW]","amount":-61.0,"paid":true},{"name":"RENT","amount":-2545.0,"paid":true},{"name":"Nic","amount":120.0,"paid":true},{"name":"Snack","amount":-2.49,"paid":true}],"2026-05-02":[{"name":"Groceries","amount":-149.45,"paid":true},{"name":"May Food","amount":0.0,"paid":true},{"name":"Bread","amount":-5.14,"paid":true},{"name":"Casper Pics","amount":-30.84,"paid":true},{"name":"Camp Refund","amount":38.15,"paid":true}],"2026-05-03":[{"name":"Water Filter","amount":-18.18,"paid":true}],"2026-05-04":[{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":true},{"name":"KFR Cash","amount":500.0,"paid":true},{"name":"Tricon Debt","amount":-319.3,"paid":true},{"name":"Nic Pens","amount":-180.0,"paid":true}],"2026-05-05":[{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"GAS - Keith","amount":-50.0,"paid":true}],"2026-05-06":[{"name":"[SUB - Amazon]","amount":-16.04,"paid":true},{"name":"Balance Correction","amount":21.36,"paid":true}],"2026-05-07":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"PAY - Keith","amount":2066.71,"paid":true},{"name":"GAS - Keagan","amount":-45.01,"paid":true},{"name":"GAS - Keith","amount":-50.0,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":true},{"name":"Snack","amount":-4.48,"paid":true},{"name":"LOAN - OneMain","amount":-335.0,"paid":true},{"name":"Snack","amount":-1.99,"paid":true},{"name":"Groceries","amount":-22.77,"paid":true}],"2026-05-08":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":true},{"name":"Nic Out","amount":-79.16,"paid":true},{"name":"Nic In","amount":50.0,"paid":true},{"name":"KFR - Tag","amount":-29.6,"paid":true},{"name":"KFR - Emissions","amount":-22.0,"paid":true},{"name":"KLR - Dinner","amount":-15.88,"paid":true}],"2026-05-09":[{"name":"Groceries","amount":-210.6,"paid":true},{"name":"Groceries","amount":-31.39,"paid":true}],"2026-05-10":[{"name":"Application Fee","amount":-55.0,"paid":true},{"name":"Application Fee","amount":-55.0,"paid":true},{"name":"May Food","amount":-9.61,"paid":true},{"name":"May Food","amount":-21.47,"paid":true},{"name":"May Food","amount":-11.76,"paid":true},{"name":"JNT - Dinner","amount":-56.55,"paid":true}],"2026-05-11":[{"name":"KFR Cash","amount":550.0,"paid":true}],"2026-05-12":[{"name":"CC - Credit One","amount":-44.0,"paid":true},{"name":"Learning Bridge","amount":-40.0,"paid":true},{"name":"Snack","amount":-2.59,"paid":true},{"name":"Snack","amount":-4.28,"paid":true}],"2026-05-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":false},{"name":"Taxes","amount":500.0,"paid":true}],"2026-05-14":[{"name":"PAY - Keagan","amount":547.18,"paid":true},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.03,"paid":true},{"name":"PAY - Keagan CS","amount":-80.0,"paid":false},{"name":"KFR - Food","amount":-12.0,"paid":false}],"2026-05-15":[{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-05-16":[{"name":"Groceries","amount":-200.0,"paid":false},{"name":"May Food","amount":0.0,"paid":false}],"2026-05-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-05-18":[{"name":"[INS - Cars]","amount":-196.88,"paid":false}],"2026-05-19":[{"name":"Learning Bridge","amount":-40.0,"paid":false},{"name":"Nic In","amount":300.0,"paid":false},{"name":"Nic Out","amount":-100.0,"paid":false}],"2026-05-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false}],"2026-05-21":[{"name":"PAY - Keagan","amount":547.18,"paid":false},{"name":"PAY - Keith","amount":2066.71,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"PAY - Keagan CS","amount":-80.0,"paid":false}],"2026-05-23":[{"name":"Groceries","amount":-200.0,"paid":false}],"2026-05-24":[{"name":"CC - Kroger","amount":-372.0,"paid":false}],"2026-05-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":false}],"2026-05-26":[{"name":"[UTIL - Phones]","amount":-187.67,"paid":false}],"2026-05-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":false}],"2026-05-28":[{"name":"PAY - Keagan","amount":547.18,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"PAY - Keagan CS","amount":-80.0,"paid":false},{"name":"LOAN - Subaru","amount":-400.0,"paid":false}],"2026-05-30":[{"name":"Groceries","amount":-200.0,"paid":false},{"name":"May Food","amount":0.0,"paid":false},{"name":"Rent Deposit","amount":-1400.0,"paid":false},{"name":"Fees","amount":-640.0,"paid":false},{"name":"Pet Deposit","amount":-500.0,"paid":false}],"2026-05-31":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"Josh & Carla RENT","amount":1050.0,"paid":false},{"name":"UTIL - Water","amount":-48.52,"paid":false},{"name":"UTIL - Sewer","amount":-32.76,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"CS - Josh","amount":350.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-06-01":[{"name":"UTIL - Power","amount":-163.39,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-106.05,"paid":false},{"name":"RENT","amount":-1900.0,"paid":false},{"name":"Medical - Keith","amount":0.0,"paid":false},{"name":"Medical - Keagan","amount":0.0,"paid":false},{"name":"[CC - DSW]","amount":-61.0,"paid":false}],"2026-06-04":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"PAY - Keagan CS","amount":-80.0,"paid":false},{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-06-06":[{"name":"Groceries","amount":-200.0,"paid":false},{"name":"LOAN - OneMain","amount":-335.0,"paid":false},{"name":"[SUB - Amazon]","amount":-16.04,"paid":false}],"2026-06-07":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":false}],"2026-06-11":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"PAY - Keagan CS","amount":-80.0,"paid":false}],"2026-06-12":[{"name":"CC - Credit One","amount":-44.0,"paid":false}],"2026-06-13":[{"name":"Groceries","amount":-200.0,"paid":false},{"name":"[UTIL - Internet]","amount":-74.58,"paid":false},{"name":"May Food","amount":0.0,"paid":false}],"2026-06-15":[{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-06-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-06-18":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"PAY - Keagan CS","amount":-80.0,"paid":false},{"name":"[INS - Cars]","amount":-196.88,"paid":false}],"2026-06-20":[{"name":"Groceries","amount":-200.0,"paid":false},{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false}],"2026-06-24":[{"name":"CC - Kroger","amount":-372.0,"paid":false}],"2026-06-25":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"PAY - Keagan CS","amount":-80.0,"paid":false},{"name":"LOAN - Paypal","amount":-45.0,"paid":false}],"2026-06-26":[{"name":"[UTIL - Phones]","amount":-187.67,"paid":false}],"2026-06-27":[{"name":"Groceries","amount":-200.0,"paid":false},{"name":"[SUB - Hulu]","amount":-19.99,"paid":false},{"name":"May Food","amount":0.0,"paid":false}],"2026-06-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":false}],"2026-06-30":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"UTIL - Water","amount":-46.45,"paid":false},{"name":"UTIL - Sewer","amount":-30.69,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-07-01":[{"name":"UTIL - Power","amount":-137.52,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-116.97,"paid":false},{"name":"Medical - Keith","amount":-50.0,"paid":false},{"name":"Medical - Keagan","amount":-50.0,"paid":false},{"name":"[CC - DSW]","amount":-61.0,"paid":false},{"name":"RENT","amount":-1775.0,"paid":false},{"name":"PET RENT","amount":-80.0,"paid":false}],"2026-07-02":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-07-04":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false}],"2026-07-06":[{"name":"LOAN - OneMain","amount":-335.0,"paid":false},{"name":"[SUB - Amazon]","amount":-16.04,"paid":false}],"2026-07-07":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":false}],"2026-07-09":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-07-11":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"May Food","amount":0.0,"paid":false}],"2026-07-12":[{"name":"CC - Credit One","amount":-44.0,"paid":false}],"2026-07-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":false}],"2026-07-15":[{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-07-16":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false}],"2026-07-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-07-18":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"[INS - Cars]","amount":-196.88,"paid":false}],"2026-07-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false}],"2026-07-23":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-07-24":[{"name":"CC - Kroger","amount":-372.0,"paid":false}],"2026-07-25":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"LOAN - Paypal","amount":-45.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-07-26":[{"name":"[UTIL - Phones]","amount":-187.67,"paid":false}],"2026-07-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":false}],"2026-07-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":false}],"2026-07-30":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-07-31":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"UTIL - Water","amount":-46.45,"paid":false},{"name":"UTIL - Sewer","amount":-30.69,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-08-01":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"UTIL - Power","amount":-137.52,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-116.97,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"Medical - Keith","amount":-50.0,"paid":false},{"name":"Medical - Keagan","amount":-50.0,"paid":false},{"name":"[CC - DSW]","amount":-61.0,"paid":false},{"name":"RENT","amount":-1775.0,"paid":false},{"name":"PET RENT","amount":-80.0,"paid":false}],"2026-08-04":[{"name":"Learning Bridge","amount":-40.0,"paid":false},{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false}],"2026-08-06":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"LOAN - OneMain","amount":-335.0,"paid":false},{"name":"[SUB - Amazon]","amount":-16.04,"paid":false}],"2026-08-07":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":false}],"2026-08-08":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-08-11":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-08-12":[{"name":"CC - Credit One","amount":-44.0,"paid":false}],"2026-08-13":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"[UTIL - Internet]","amount":-74.58,"paid":false}],"2026-08-15":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-08-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-08-18":[{"name":"[INS - Cars]","amount":-196.88,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-08-20":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false}],"2026-08-22":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-08-24":[{"name":"CC - Kroger","amount":-372.0,"paid":false}],"2026-08-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-08-26":[{"name":"[UTIL - Phones]","amount":-187.67,"paid":false}],"2026-08-27":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"[SUB - Hulu]","amount":-19.99,"paid":false}],"2026-08-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":false}],"2026-08-29":[{"name":"Groceries","amount":-300.0,"paid":false}],"2026-08-31":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"UTIL - Water","amount":-46.45,"paid":false},{"name":"UTIL - Sewer","amount":-30.69,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-09-01":[{"name":"UTIL - Power","amount":-137.52,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-116.97,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false},{"name":"Medical - Keith","amount":-50.0,"paid":false},{"name":"Medical - Keagan","amount":-50.0,"paid":false},{"name":"[CC - DSW]","amount":-61.0,"paid":false},{"name":"RENT","amount":-1775.0,"paid":false},{"name":"PET RENT","amount":-80.0,"paid":false}],"2026-09-03":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-09-04":[{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false}],"2026-09-05":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-09-06":[{"name":"LOAN - OneMain","amount":-335.0,"paid":false},{"name":"[SUB - Amazon]","amount":-16.04,"paid":false}],"2026-09-07":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":false}],"2026-09-08":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-09-10":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-09-12":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"CC - Credit One","amount":-44.0,"paid":false}],"2026-09-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":false}],"2026-09-15":[{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-09-17":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-09-18":[{"name":"[INS - Cars]","amount":-196.88,"paid":false}],"2026-09-19":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-09-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false}],"2026-09-22":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-09-24":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"CC - Kroger","amount":-372.0,"paid":false}],"2026-09-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":false}],"2026-09-26":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"[UTIL - Phones]","amount":-187.67,"paid":false}],"2026-09-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":false}],"2026-09-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":false}],"2026-09-29":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-09-30":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"UTIL - Water","amount":-46.45,"paid":false},{"name":"UTIL - Sewer","amount":-30.69,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-10-01":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"UTIL - Power","amount":-137.52,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-116.97,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"RENT","amount":-1775.0,"paid":false},{"name":"PET RENT","amount":-80.0,"paid":false}],"2026-10-02":[{"name":"[CC - DSW]","amount":-61.0,"paid":false},{"name":"Medical - Keagan","amount":-50.0,"paid":false},{"name":"Medical - Keith","amount":-50.0,"paid":false}],"2026-10-03":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-10-04":[{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false}],"2026-10-06":[{"name":"Learning Bridge","amount":-40.0,"paid":false},{"name":"LOAN - OneMain","amount":-335.0,"paid":false},{"name":"[SUB - Amazon]","amount":-16.04,"paid":false}],"2026-10-07":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":false}],"2026-10-08":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-10-10":[{"name":"Groceries","amount":-300.0,"paid":false}],"2026-10-12":[{"name":"CC - Credit One","amount":-44.0,"paid":false}],"2026-10-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-10-15":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-10-17":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"May Food","amount":-45.0,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-10-18":[{"name":"[INS - Cars]","amount":-196.88,"paid":false}],"2026-10-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-10-22":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-10-24":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"CC - Kroger","amount":-372.0,"paid":false}],"2026-10-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":false}],"2026-10-26":[{"name":"[UTIL - Phones]","amount":-187.67,"paid":false}],"2026-10-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-10-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":false}],"2026-10-29":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-10-30":[{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-10-31":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"UTIL - Water","amount":-46.45,"paid":false},{"name":"UTIL - Sewer","amount":-30.69,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-11-01":[{"name":"UTIL - Power","amount":-137.52,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-116.97,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"Medical - Keith","amount":-50.0,"paid":false},{"name":"Medical - Keagan","amount":-50.0,"paid":false},{"name":"[CC - DSW]","amount":-61.0,"paid":false},{"name":"RENT","amount":-1775.0,"paid":false},{"name":"PET RENT","amount":-80.0,"paid":false}],"2026-11-03":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-11-04":[{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false}],"2026-11-05":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-11-06":[{"name":"LOAN - OneMain","amount":-335.0,"paid":false},{"name":"[SUB - Amazon]","amount":-16.04,"paid":false}],"2026-11-07":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"[SUB - TY Music]","amount":-16.99,"paid":false}],"2026-11-10":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-11-12":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"CC - Credit One","amount":-44.0,"paid":false}],"2026-11-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":false}],"2026-11-14":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-11-15":[{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-11-17":[{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-11-18":[{"name":"[INS - Cars]","amount":-196.88,"paid":false}],"2026-11-19":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-11-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false}],"2026-11-21":[{"name":"Groceries","amount":-300.0,"paid":false}],"2026-11-24":[{"name":"CC - Kroger","amount":-372.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-11-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":false}],"2026-11-26":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"[UTIL - Phones]","amount":-187.67,"paid":false}],"2026-11-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":false}],"2026-11-28":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"LOAN - Subaru","amount":-400.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-11-30":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"UTIL - Water","amount":-46.45,"paid":false},{"name":"UTIL - Sewer","amount":-30.69,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-12-01":[{"name":"UTIL - Power","amount":-137.52,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-116.97,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false},{"name":"Medical - Keith","amount":-50.0,"paid":false},{"name":"Medical - Keagan","amount":-50.0,"paid":false},{"name":"[CC - DSW]","amount":-61.0,"paid":false},{"name":"RENT","amount":-1775.0,"paid":false},{"name":"PET RENT","amount":-80.0,"paid":false}],"2026-12-03":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-12-04":[{"name":"[SUB - G1 Keagan]","amount":-1.99,"paid":false}],"2026-12-05":[{"name":"Groceries","amount":-300.0,"paid":false}],"2026-12-06":[{"name":"LOAN - OneMain","amount":-335.0,"paid":false},{"name":"[SUB - Amazon]","amount":-16.04,"paid":false}],"2026-12-07":[{"name":"[SUB - TY Music]","amount":-16.99,"paid":false}],"2026-12-08":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-12-10":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false}],"2026-12-12":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"CC - Credit One","amount":-44.0,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-12-13":[{"name":"[UTIL - Internet]","amount":-74.58,"paid":false}],"2026-12-14":[{"name":"CS - Heather","amount":-296.0,"paid":false}],"2026-12-15":[{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-12-17":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"PAY - Keith","amount":2183.3,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"[SUB - Amazon Kids]","amount":-5.99,"paid":false},{"name":"[SUB - Netflix]","amount":-24.99,"paid":false}],"2026-12-18":[{"name":"[INS - Cars]","amount":-196.88,"paid":false}],"2026-12-19":[{"name":"Groceries","amount":-300.0,"paid":false}],"2026-12-20":[{"name":"LOAN - Citi Bank","amount":-50.0,"paid":false}],"2026-12-22":[{"name":"Learning Bridge","amount":-40.0,"paid":false}],"2026-12-24":[{"name":"PAY - Keagan","amount":506.2,"paid":false},{"name":"GAS - Keagan","amount":-30.0,"paid":false},{"name":"GAS - Keith","amount":-50.0,"paid":false},{"name":"CC - Kroger","amount":-372.0,"paid":false}],"2026-12-25":[{"name":"LOAN - Paypal","amount":-45.0,"paid":false}],"2026-12-26":[{"name":"Groceries","amount":-300.0,"paid":false},{"name":"[UTIL - Phones]","amount":-187.67,"paid":false},{"name":"May Food","amount":-45.0,"paid":false}],"2026-12-27":[{"name":"[SUB - Hulu]","amount":-19.99,"paid":false}],"2026-12-28":[{"name":"LOAN - Subaru","amount":-400.0,"paid":false}],"2026-12-29":[{"name":"UTIL - Power","amount":-137.52,"paid":false},{"name":"UTIL - FEES","amount":-10.49,"paid":false},{"name":"UTIL - Gas","amount":-116.97,"paid":false},{"name":"CS - Heather","amount":-296.0,"paid":false},{"name":"Learning Bridge","amount":-40.0,"paid":false},{"name":"CC - C1 Keagan","amount":-68.0,"paid":false},{"name":"[SUB - Playstation]","amount":-9.99,"paid":false}],"2026-12-30":[{"name":"[SUB - G1 Keith]","amount":-2.99,"paid":false},{"name":"UTIL - Water","amount":-46.45,"paid":false},{"name":"UTIL - Sewer","amount":-30.69,"paid":false},{"name":"UTIL - Trash","amount":-18.0,"paid":false},{"name":"Waiver","amount":-7.5,"paid":false},{"name":"[CC - DSW]","amount":-61.0,"paid":false}]};
+const CSV_OPENING = 1222.91;
+
+// ── ALLOWED ACCOUNTS ─────────────────────────────────────────
+// Both emails share the exact same Firestore document
+const FAMILY_EMAILS = [
+  'keaganlrowles@gmail.com',   // Keagan (wife)
+  'keithrowles01@gmail.com'    // Keith
+];
+const SHARED_DOC_ID = 'rowles_family'; // single shared document for the whole family
+
+// ── STATE ────────────────────────────────────────────────────
+let data = {};
+let currentUser = null;
+let saveTimer = null;
+let unsubscribeSnapshot = null;
+let userCollapsed = new Set();
+let theme = localStorage.getItem('rfp_theme') || 'light';
+document.documentElement.setAttribute('data-theme', theme);
+document.getElementById('btn-theme').textContent = theme === 'light' ? '🌙' : '☀️';
+
+// ── HELPERS ──────────────────────────────────────────────────
+function dk(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function getDay(key) { if (!data[key]) data[key] = {balance:null, transactions:[], complete:false}; return data[key]; }
+function fmt(d) { return `${d.getMonth()+1}/${d.getDate()}`; }
+function fmtM(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  const s = Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return n < 0 ? `-$${s}` : `$${s}`;
+}
+function fmtMShort(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  const abs = Math.abs(n);
+  const s = abs >= 10000 ? (abs/1000).toFixed(1)+'k' : abs.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+  return n < 0 ? `-$${s}` : `$${s}`;
+}
+function detectCat(name) {
+  const u = (name||'').toUpperCase();
+  if (u.startsWith('PAY')) return 'PAY';
+  if (u.startsWith('GAS')) return 'GAS';
+  if (/(\[SUB|^SUB)/.test(u)) return 'SUB';
+  if (/(\[INS|^INS)/.test(u)) return 'INS';
+  if (u.startsWith('LOAN')) return 'LOAN';
+  if (/(\[CC|^CC)/.test(u)) return 'CC';
+  if (u.startsWith('UTIL')) return 'UTIL';
+  if (u.includes('RENT') || u === 'RENT') return 'RENT';
+  if (u.includes('MEDICAL') || u.includes('MED -')) return 'MEDICAL';
+  if (u.includes('FOOD') || u.includes('GROCERIES')) return 'FOOD';
+  return 'OTHER';
+}
+
+const today = new Date(); today.setHours(0,0,0,0);
+const todayKey = dk(today);
+function isPast(d) { const c = new Date(d); c.setHours(0,0,0,0); return c < today; }
+function isToday(d) { const c = new Date(d); c.setHours(0,0,0,0); return c.getTime() === today.getTime(); }
+
+// ── SYNC STATUS UI ───────────────────────────────────────────
+function setSyncStatus(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  if (!dot || !txt) return;
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = text;
+}
+
+// ── FIREBASE SAVE (debounced) ────────────────────────────────
+function scheduleSave() {
+  if (!currentUser) return;
+  setSyncStatus('saving', 'Saving...');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      window._lastSaveTime = Date.now();
+      const docRef = doc(db, 'planners', SHARED_DOC_ID);
+      await setDoc(docRef, {
+        plannerData: JSON.stringify(data),
+        collapsed: JSON.stringify([...userCollapsed]),
+        updatedAt: window._lastSaveTime,
+        lastEditedBy: currentUser.email
+      });
+      setSyncStatus('synced', 'Saved · ' + currentUser.email.split('@')[0]);
+    } catch (e) {
+      setSyncStatus('error', 'Save failed — check connection');
+      console.error('Save error:', e);
+    }
+  }, 1500);
+}
+
+// ── FIREBASE LOAD ────────────────────────────────────────────
+async function loadFromFirebase() {
+  setSyncStatus('saving', 'Loading...');
+  try {
+    const docRef = doc(db, 'planners', SHARED_DOC_ID);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const d = snap.data();
+      data = JSON.parse(d.plannerData || '{}');
+      userCollapsed = new Set(JSON.parse(d.collapsed || '[]'));
+      const editor = d.lastEditedBy ? ' · last edited by ' + d.lastEditedBy.split('@')[0] : '';
+      setSyncStatus('synced', 'Up to date' + editor);
+    } else {
+      // First time — seed with CSV data
+      seedCSVData();
+      await scheduleSave();
+      setSyncStatus('synced', 'Data seeded');
+    }
+  } catch (e) {
+    setSyncStatus('error', 'Load failed — check connection');
+    console.error('Load error:', e);
+  }
+  ensureOpeningTx();
+  renderAll();
+  // Real-time listener — updates instantly when the other person makes a change
+  if (unsubscribeSnapshot) unsubscribeSnapshot();
+  unsubscribeSnapshot = onSnapshot(doc(db, 'planners', SHARED_DOC_ID), (snap) => {
+    if (snap.exists() && snap.metadata.hasPendingWrites === false) {
+      const d = snap.data();
+      // Only update if this came from the other person, not our own save
+      if (d.updatedAt && d.updatedAt > (window._lastSaveTime || 0) && d.lastEditedBy !== currentUser.email) {
+        data = JSON.parse(d.plannerData || '{}');
+        userCollapsed = new Set(JSON.parse(d.collapsed || '[]'));
+        ensureOpeningTx();
+        renderAll();
+        setSyncStatus('synced', '✓ Synced · updated by ' + (d.lastEditedBy||'').split('@')[0]);
+      }
+    }
+  });
+}
+
+function seedCSVData() {
+  Object.entries(CSV_DATA).forEach(([key, txs]) => {
+    if (!data[key]) data[key] = {balance:null, transactions:[], complete:false};
+    txs.forEach(tx => {
+      const exists = data[key].transactions.some(t => t.name === tx.name && t.amount === tx.amount);
+      if (!exists) data[key].transactions.push({...tx, category: detectCat(tx.name)});
+    });
+  });
+  if (data[OPENING_KEY] === undefined) data[OPENING_KEY] = CSV_OPENING;
+}
+
+function ensureOpeningTx() {
+  const jan1key = `${YEAR}-01-01`;
+  const d = getDay(jan1key);
+  const idx = d.transactions.findIndex(t => t.__opening);
+  const ob = data[OPENING_KEY] !== undefined ? data[OPENING_KEY] : CSV_OPENING;
+  const tx = {__opening:true, name:'2025 Balance', amount:ob, paid:true, category:'OTHER'};
+  if (idx === -1) d.transactions.unshift(tx);
+  else d.transactions[idx] = tx;
+}
+
+// ── BALANCE ENGINE ───────────────────────────────────────────
+function buildBalanceMap() {
+  const map = {}; let running = 0;
+  const cur = new Date(YEAR,0,1); const end = new Date(YEAR,11,31);
+  while (cur <= end) {
+    const key = dk(cur); const d = getDay(key);
+    (d.transactions||[]).forEach(tx => { running += tx.amount||0; });
+    map[key] = running; cur.setDate(cur.getDate()+1);
+  }
+  return map;
+}
+function yearLow(balMap) { let low = Infinity; Object.values(balMap).forEach(v => { if (v!==null && v<low) low=v; }); return low===Infinity?null:low; }
+function weekMinFromMap(week, balMap) {
+  let min = Infinity;
+  week.forEach(day => { if (day.getFullYear()!==YEAR) return; const v=balMap[dk(day)]; if (v!==null&&v!==undefined&&v<min) min=v; });
+  return min===Infinity?null:min;
+}
+function monthEndBal(m, balMap) { return balMap[dk(new Date(YEAR,m+1,0))]??null; }
+function monthMin(m, balMap) {
+  let min = Infinity; const cur = new Date(YEAR,m,1);
+  while (cur.getMonth()===m) { const v=balMap[dk(cur)]; if (v!==null&&v!==undefined&&v<min) min=v; cur.setDate(cur.getDate()+1); }
+  return min===Infinity?null:min;
+}
+function monthStats(m) {
+  let totalIn=0, totalOut=0, totalTx=0;
+  const cutoff = new Date(Math.min(today.getTime(), new Date(YEAR,m+1,0).getTime()));
+  const cur = new Date(YEAR,m,1);
+  while (cur<=cutoff && cur.getMonth()===m) {
+    const key = dk(cur); const d = getDay(key);
+    const txs = (d.transactions||[]).filter(t=>!t.__opening);
+    if (txs.length > 0) {
+      totalTx += txs.length;
+      txs.forEach(tx => { if ((tx.amount||0)>0) totalIn+=tx.amount; else totalOut+=tx.amount; });
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+  const monthStart = new Date(YEAR,m,1); const monthEnd = new Date(YEAR,m+1,0);
+  let elapsed;
+  if (today < monthStart) elapsed = 0;
+  else if (today > monthEnd) elapsed = monthEnd.getDate();
+  else elapsed = today.getDate();
+  return {totalIn, totalOut, avgPerDay: elapsed>0?totalTx/elapsed:0, elapsed};
+}
+
+function isMonthAllPast(m) { return new Date(YEAR,m+1,0) < today; }
+function shouldOpen(m) { if (userCollapsed.has(m)) return false; if (isMonthAllPast(m)) return false; return true; }
+function buildMonthRows(m) {
+  const firstDay=new Date(YEAR,m,1); const lastDay=new Date(YEAR,m+1,0);
+  const firstDow=(firstDay.getDay()+6)%7; const startMon=new Date(firstDay); startMon.setDate(firstDay.getDate()-firstDow);
+  const lastDow=(lastDay.getDay()+6)%7; const endSun=new Date(lastDay); endSun.setDate(lastDay.getDate()+(6-lastDow));
+  const rows=[]; let cur=new Date(startMon);
+  while (cur<=endSun) { const week=[]; for (let i=0;i<7;i++) { week.push(new Date(cur)); cur.setDate(cur.getDate()+1); } rows.push(week); }
+  return rows;
+}
+function wMinClass(v) { if (v===null) return ''; if (v>=1000) return 'wmin-green'; if (v>=500) return 'wmin-yellow'; return 'wmin-red'; }
+
+// ── MODALS ───────────────────────────────────────────────────
+function openModal(dk_key, txIdx) {
+  const d = getDay(dk_key); const isNew = txIdx===-1;
+  const tx = isNew ? {name:'',amount:'',paid:false,category:'OTHER'} : {...d.transactions[txIdx]};
+  const isOpening = tx.__opening===true; const cat = tx.category||detectCat(tx.name||'');
+  const root = document.getElementById('modal-root');
+  if (isOpening) {
+    root.innerHTML=`<div class="modal-ov" id="mov"><div class="modal">
+      <h3>Edit 2025 Opening Balance</h3>
+      <p class="modal-note">Your carry-over balance from end of 2025. Seeds the entire year's running total.</p>
+      <label>Opening Balance ($)</label><input id="mob" type="number" step="0.01" value="${tx.amount||0}">
+      <div class="mbtns"><button id="mcancel">Cancel</button><button class="mbsave" id="msave">Save</button></div>
+    </div></div>`;
+    document.getElementById('mcancel').onclick=()=>root.innerHTML='';
+    document.getElementById('mov').onclick=e=>{if(e.target.id==='mov')root.innerHTML='';};
+    document.getElementById('msave').onclick=()=>{
+      const val=parseFloat(document.getElementById('mob').value);
+      if(isNaN(val)){alert('Enter a valid number.');return;}
+      data[OPENING_KEY]=val; ensureOpeningTx(); scheduleSave(); root.innerHTML=''; renderAll();
+    };
+    setTimeout(()=>document.getElementById('mob').focus(),30); return;
+  }
+  root.innerHTML=`<div class="modal-ov" id="mov"><div class="modal">
+    <h3>${isNew?'Add Transaction':'Edit Transaction'} — ${dk_key}</h3>
+    <label>Name</label><input id="mn" value="${(tx.name||'').replace(/"/g,'&quot;')}" placeholder="e.g. PAY - Keagan">
+    <label>Amount (negative = expense)</label><input id="ma" type="number" step="0.01" value="${tx.amount!==''&&tx.amount!==undefined?tx.amount:''}">
+    <label>Category</label><select id="mc">${CATS.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('')}</select>
+    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:10px"><input type="checkbox" id="mp" ${tx.paid?'checked':''}> Mark as Paid</label>
+    <div class="mbtns">${!isNew?'<button class="mbdel" id="mdel">Delete</button>':''}<button id="mcancel">Cancel</button><button class="mbsave" id="msave">Save</button></div>
+  </div></div>`;
+  document.getElementById('mcancel').onclick=()=>root.innerHTML='';
+  document.getElementById('mov').onclick=e=>{if(e.target.id==='mov')root.innerHTML='';};
+  document.getElementById('msave').onclick=()=>{
+    const name=document.getElementById('mn').value.trim();
+    const amount=parseFloat(document.getElementById('ma').value);
+    const paid=document.getElementById('mp').checked;
+    const category=document.getElementById('mc').value;
+    if(!name||isNaN(amount)){alert('Fill in name and amount.');return;}
+    const fc=category==='OTHER'?detectCat(name):category;
+    if(isNew) d.transactions.push({name,amount,paid,category:fc});
+    else d.transactions[txIdx]={name,amount,paid,category:fc};
+    scheduleSave(); root.innerHTML=''; renderAll();
+  };
+  if(!isNew) document.getElementById('mdel').onclick=()=>{
+    if(confirm('Delete?')){ d.transactions.splice(txIdx,1); scheduleSave(); root.innerHTML=''; renderAll(); }
+  };
+  setTimeout(()=>document.getElementById('mn').focus(),30);
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+function renderDayCol(day, m, balMap, isBlank) {
+  const key=dk(day); const inMonth=day.getMonth()===m&&day.getFullYear()===YEAR;
+  const past=inMonth&&isPast(day); const tod=inMonth&&isToday(day);
+  const d=inMonth?getDay(key):null; const endBal=inMonth?(balMap[key]??null):null;
+  const di=(day.getDay()+6)%7;
+  const col=document.createElement('div');
+  col.className=`day-col${isBlank?' blank-day':''}${past&&!isBlank?' past-col':''}`;
+  const hdr=document.createElement('div');
+  hdr.className=`day-hdr${past&&!isBlank?' past':''}${tod?' today':''}`;
+  hdr.innerHTML=`<div class="dname">${DAYS_FULL[di].slice(0,3)}</div><div class="ddate">${inMonth||isBlank?fmt(day):'—'}</div>`;
+  const ch=document.createElement('div'); ch.className='col-hdr-row';
+  ch.innerHTML='<span>Name</span><span style="text-align:right">Amt</span><span></span>';
+  const txl=document.createElement('div'); txl.className='tx-list';
+  if(!isBlank&&inMonth){
+    (d.transactions||[]).forEach((tx,ti)=>{
+      const isOpening=tx.__opening===true;
+      const cat=isOpening?'OTHER':(tx.category||detectCat(tx.name));
+      const row=document.createElement('div');
+      let paidClass='';
+      if(isOpening) paidClass='opening-bal';
+      else if(tx.paid) paidClass=past?'paid-past':'paid-future';
+      else if(past) paidClass='unpaid-past';
+      row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}`;
+      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}">${tx.name||''}</span>
+        <span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span>
+        <span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
+      row.querySelector('.tx-nm').onclick=()=>openModal(key,ti);
+      if(!isOpening){ row.querySelector('input').onchange=e=>{tx.paid=e.target.checked; scheduleSave(); renderAll();}; }
+      else { row.querySelector('.tx-chk span').onclick=()=>openModal(key,ti); }
+      txl.appendChild(row);
+    });
+    const ar=document.createElement('div'); ar.className='add-row'; ar.textContent='+';
+    ar.onclick=()=>openModal(key,-1); txl.appendChild(ar);
+  }
+  const br=document.createElement('div'); br.className='day-bal-row';
+  if(!isBlank&&inMonth){
+    const bc=endBal!==null?(endBal>=0?'pos':'neg'):'';
+    br.innerHTML=`<span class="bal-lbl">Balance</span><span class="bal-val ${bc}">${fmtM(endBal)}</span>`;
+  } else {
+    br.innerHTML='<span class="bal-lbl">Balance</span><span class="bal-val" style="color:var(--text-blank)">—</span>';
+  }
+  col.appendChild(hdr); col.appendChild(ch); col.appendChild(txl); col.appendChild(br);
+  return col;
+}
+
+function renderMonth(m, balMap) {
+  const rows=buildMonthRows(m); const mb=document.createElement('div'); mb.className=`month-block m${m}`;
+  const mMin=monthMin(m,balMap); const mEnd=monthEndBal(m,balMap);
+  const allPast=isMonthAllPast(m); const isOpen=shouldOpen(m);
+  const stats=monthStats(m);
+  const arrow=document.createElement('span'); arrow.className=`month-arrow${isOpen?' open':''}`; arrow.textContent='▶';
+  const mhdr=document.createElement('div'); mhdr.className='month-header';
+  const inStr=fmtMShort(stats.totalIn); const outStr=fmtMShort(Math.abs(stats.totalOut));
+  const avgStr=stats.elapsed>0?stats.avgPerDay.toFixed(1):'—';
+  const isFuture=new Date(YEAR,m,1)>today;
+  const endCls=mEnd!==null?(mEnd>=0?'mpos':'mneg'):'mneutral';
+  const minCls=mMin!==null&&mMin<500?'mneg':mMin!==null&&mMin<1000?'mwarn':'mneutral';
+  mhdr.innerHTML=`
+    <span class="month-left"><span class="month-title">${MONTH_NAMES[m]}${allPast?' <span style="font-size:10px;opacity:0.5;font-weight:300">· past</span>':''}</span></span>
+    <span class="month-stats">
+      ${!isFuture?`
+        <span class="mstat"><span class="mstat-lbl">In</span><span class="mstat-val mpos">+${inStr}</span></span>
+        <span class="mstat-sep">·</span>
+        <span class="mstat"><span class="mstat-lbl">Out</span><span class="mstat-val mneg">-${outStr}</span></span>
+        <span class="mstat-sep">·</span>
+        <span class="mstat"><span class="mstat-lbl">Avg/day</span><span class="mstat-val mneutral">${avgStr}</span></span>
+        <span class="mstat-sep">·</span>
+      `:''}
+      <span class="mstat"><span class="mstat-lbl">Min</span><span class="mstat-val ${minCls}">${fmtMShort(mMin)}</span></span>
+      <span class="mstat-sep">·</span>
+      <span class="mstat"><span class="mstat-lbl">End</span><span class="mstat-val ${endCls}">${fmtMShort(mEnd)}</span></span>
+    </span>`;
+  mhdr.appendChild(arrow);
+  const mbody=document.createElement('div'); mbody.className=`month-body${isOpen?' open':''}`;
+  rows.forEach(week=>{
+    const wb=document.createElement('div'); wb.className='week-block';
+    const inM=week.filter(d=>d.getMonth()===m&&d.getFullYear()===YEAR);
+    const wMin=weekMinFromMap(week,balMap);
+    const s=inM.length?fmt(inM[0]):''; const e=inM.length>1?fmt(inM[inM.length-1]):'';
+    const wlr=document.createElement('div'); wlr.className='week-label-row';
+    wlr.innerHTML=`<span class="week-lbl">Week · ${s}${e?' – '+e:''}</span>
+      <span class="week-right"><span class="week-min-lbl">W Min</span><span class="week-min-badge ${wMinClass(wMin)}">${fmtM(wMin)}</span></span>`;
+    wb.appendChild(wlr);
+    const grid=document.createElement('div'); grid.className='day-grid';
+    week.forEach(day=>grid.appendChild(renderDayCol(day,m,balMap,day.getMonth()!==m||day.getFullYear()!==YEAR)));
+    wb.appendChild(grid); mbody.appendChild(wb);
+  });
+  mhdr.onclick=()=>{
+    const nowOpen=mbody.classList.contains('open');
+    mbody.classList.toggle('open',!nowOpen); arrow.classList.toggle('open',!nowOpen);
+    if(nowOpen) userCollapsed.add(m); else userCollapsed.delete(m);
+    scheduleSave();
+  };
+  mb.appendChild(mhdr); mb.appendChild(mbody); return mb;
+}
+
+let firstRender = true;
+function renderAll() {
+  ensureOpeningTx();
+  const balMap = buildBalanceMap();
+  const yl = yearLow(balMap);
+  const el = document.getElementById('yearlow-hdr');
+  if (el) { el.textContent=yl!==null?fmtM(yl):'—'; el.className='tr-val '+(yl!==null&&yl<500?'neg':'warn'); }
+  const container = document.getElementById('months-container');
+  container.innerHTML = '';
+  for (let m=0; m<12; m++) container.appendChild(renderMonth(m, balMap));
+  if (firstRender) {
+    firstRender = false;
+    requestAnimationFrame(()=>{
+      const cur = container.querySelector(`.month-block.m${today.getMonth()}`);
+      if (cur) cur.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  }
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+document.getElementById('btn-google-signin').onclick = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    alert('Sign-in failed: ' + e.message);
+  }
+};
+
+document.getElementById('btn-signout').onclick = async () => {
+  if (confirm('Sign out?')) {
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    await signOut(auth);
+  }
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    // Check if this email is authorized
+    const email = (user.email || '').toLowerCase();
+    const isAuthorized = FAMILY_EMAILS.map(e => e.toLowerCase()).includes(email);
+    if (!isAuthorized) {
+      await signOut(auth);
+      document.getElementById('auth-overlay').innerHTML = `
+        <div class="auth-box">
+          <div class="logo">🔒</div>
+          <h2>Access Denied</h2>
+          <p>The account <strong>${user.email}</strong> is not authorized to access this planner.</p>
+          <p style="margin-top:12px;font-size:12px;color:#999">Please sign in with an authorized Google account.</p>
+          <button class="google-btn" id="btn-retry" style="margin-top:20px">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Try a different account
+          </button>
+        </div>`;
+      document.getElementById('btn-retry').onclick = async () => {
+        location.reload();
+      };
+      return;
+    }
+    currentUser = user;
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('sync-user').textContent = user.email;
+    await loadFromFirebase();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-overlay').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    data = {};
+    if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+  }
+});
+
+// ── HEADER BUTTONS ───────────────────────────────────────────
+document.getElementById('btn-theme').onclick = () => {
+  theme = theme==='light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('btn-theme').textContent = theme==='light' ? '🌙' : '☀️';
+  localStorage.setItem('rfp_theme', theme);
+};
+
+document.getElementById('btn-add-today').onclick = () => {
+  getDay(todayKey); openModal(todayKey, -1);
+};
+
+</script>
+</body>
+</html>
