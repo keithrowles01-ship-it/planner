@@ -241,7 +241,7 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
   <div class="app-header">
     <h1>💰 Rowles Financial Planner 2026</h1>
     <div class="hdr-right">
-      <span class="tr-lbl">Year Low:</span>
+      <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
       <span class="tr-val warn" id="yearlow-hdr">—</span>
       <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
       <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
@@ -410,9 +410,20 @@ async function loadFromFirebase() {
       // Only update if this came from the other person, not our own save
       if (d.updatedAt && d.updatedAt > (window._lastSaveTime || 0) && d.lastEditedBy !== currentUser.email) {
         data = JSON.parse(d.plannerData || '{}');
-        userCollapsed = new Set(JSON.parse(d.collapsed || '[]'));
+        // Only restore their collapse state if they changed it, not on every transaction update
+        // We keep our local collapse state for normal edits
         ensureOpeningTx();
-        renderAll();
+        // Don't reset firstRender — we don't want to re-scroll
+        const balMap = buildBalanceMap();
+        const upcoming = nextUpcomingLow(balMap);
+        const el = document.getElementById('yearlow-hdr');
+        if (el) {
+          el.textContent = upcoming !== null ? fmtM(upcoming) : '—';
+          el.className = 'tr-val ' + (upcoming !== null && upcoming < 500 ? 'neg' : upcoming !== null && upcoming < 1000 ? 'warn' : 'pos');
+        }
+        const container = document.getElementById('months-container');
+        container.innerHTML = '';
+        for (let m=0; m<12; m++) container.appendChild(renderMonth(m, balMap));
         setSyncStatus('synced', '✓ Synced · updated by ' + (d.lastEditedBy||'').split('@')[0]);
       }
     }
@@ -451,7 +462,23 @@ function buildBalanceMap() {
   }
   return map;
 }
-function yearLow(balMap) { let low = Infinity; Object.values(balMap).forEach(v => { if (v!==null && v<low) low=v; }); return low===Infinity?null:low; }
+// Finds the lowest end-of-day balance on any Wednesday from today forward.
+// "Upcoming" means: find all future Wednesdays, get their balance, return the lowest.
+// This gives you the worst-case floor you'll hit before you pass it.
+function nextUpcomingLow(balMap) {
+  let low = Infinity;
+  const cur = new Date(today);
+  const end = new Date(YEAR, 11, 31);
+  while (cur <= end) {
+    // 2 = Wednesday (0=Sun,1=Mon,2=Tue,3=Wed)
+    if (cur.getDay() === 3) {
+      const v = balMap[dk(cur)];
+      if (v !== null && v !== undefined && v < low) low = v;
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return low === Infinity ? null : low;
+}
 function weekMinFromMap(week, balMap) {
   let min = Infinity;
   week.forEach(day => { if (day.getFullYear()!==YEAR) return; const v=balMap[dk(day)]; if (v!==null&&v!==undefined&&v<min) min=v; });
@@ -485,7 +512,19 @@ function monthStats(m) {
 }
 
 function isMonthAllPast(m) { return new Date(YEAR,m+1,0) < today; }
-function shouldOpen(m) { if (userCollapsed.has(m)) return false; if (isMonthAllPast(m)) return false; return true; }
+
+// shouldOpen logic:
+// - Past months: collapsed by default, unless user explicitly opened them
+// - Current + future months: open by default, unless user explicitly collapsed them
+function shouldOpen(m) {
+  if (isMonthAllPast(m)) {
+    // past month: only open if user explicitly opened it
+    return userCollapsed.has('open_'+m);
+  } else {
+    // current/future month: open unless user explicitly collapsed it
+    return !userCollapsed.has(m);
+  }
+}
 function buildMonthRows(m) {
   const firstDay=new Date(YEAR,m,1); const lastDay=new Date(YEAR,m+1,0);
   const firstDow=(firstDay.getDay()+6)%7; const startMon=new Date(firstDay); startMon.setDate(firstDay.getDate()-firstDow);
@@ -636,7 +675,14 @@ function renderMonth(m, balMap) {
   mhdr.onclick=()=>{
     const nowOpen=mbody.classList.contains('open');
     mbody.classList.toggle('open',!nowOpen); arrow.classList.toggle('open',!nowOpen);
-    if(nowOpen) userCollapsed.add(m); else userCollapsed.delete(m);
+    if (isMonthAllPast(m)) {
+      // past month: track if user explicitly opened it
+      if (!nowOpen) userCollapsed.add('open_'+m); else userCollapsed.delete('open_'+m);
+    } else {
+      // current/future month: track if user explicitly collapsed it
+      if (nowOpen) userCollapsed.add(m); else userCollapsed.delete(m);
+    }
+    // Save collapse state without full re-render (avoids the collapse-all bug)
     scheduleSave();
   };
   mb.appendChild(mhdr); mb.appendChild(mbody); return mb;
@@ -646,9 +692,14 @@ let firstRender = true;
 function renderAll() {
   ensureOpeningTx();
   const balMap = buildBalanceMap();
-  const yl = yearLow(balMap);
+  const upcoming = nextUpcomingLow(balMap);
   const el = document.getElementById('yearlow-hdr');
-  if (el) { el.textContent=yl!==null?fmtM(yl):'—'; el.className='tr-val '+(yl!==null&&yl<500?'neg':'warn'); }
+  const lbl = document.getElementById('yearlow-lbl');
+  if (el) {
+    el.textContent = upcoming !== null ? fmtM(upcoming) : '—';
+    el.className = 'tr-val ' + (upcoming !== null && upcoming < 500 ? 'neg' : upcoming !== null && upcoming < 1000 ? 'warn' : 'pos');
+  }
+  if (lbl) lbl.textContent = 'Upcoming Low:';
   const container = document.getElementById('months-container');
   container.innerHTML = '';
   for (let m=0; m<12; m++) container.appendChild(renderMonth(m, balMap));
