@@ -326,7 +326,7 @@ const OPENING_KEY = '__opening_2025__';
 
 // ── CSV SEED DATA ────────────────────────────────────────────
 const CSV_DATA={};
-const CSV_OPENING = 1222.91;
+const CSV_OPENING = 0;
 
 // ── ALLOWED ACCOUNTS ─────────────────────────────────────────
 // Both emails share the exact same Firestore document
@@ -427,9 +427,7 @@ async function loadFromFirebase() {
       setSyncStatus('synced', 'Up to date' + editor);
     } else {
       // First time — seed with CSV data
-      seedCSVData();
-      await scheduleSave();
-      setSyncStatus('synced', 'Data seeded');
+      setSyncStatus('synced', 'Ready');
     }
   } catch (e) {
     setSyncStatus('error', 'Load failed — check connection');
@@ -465,6 +463,7 @@ async function loadFromFirebase() {
 }
 
 function seedCSVData() {
+  return; // disabled
   Object.entries(CSV_DATA).forEach(([key, txs]) => {
     if (!data[key]) data[key] = {balance:null, transactions:[], complete:false};
     txs.forEach(tx => {
