@@ -9,8 +9,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Roboto',sans-serif;font-size:12px;background:var(--bg-page);color:var(--text-primary);min-height:100vh;transition:background 0.2s,color 0.2s}
 
-/* Centered page wrapper — all content constrained to 1200px max, centered */
-.page-wrap{max-width:1200px;margin:0 auto;width:100%}
+/* Centered page wrapper — all content constrained to 1400px max, centered */
+.page-wrap{max-width:1400px;margin:0 auto;width:100%}
 .app-header .page-wrap{display:flex;align-items:center;justify-content:space-between;gap:10px}
 
 html[data-theme="light"]{
@@ -144,9 +144,9 @@ html[data-theme="dark"] .day-hdr.today .ddate{color:var(--mt)}
 .day-col.blank-day .bal-lbl,.day-col.blank-day .bal-val{color:var(--text-blank);cursor:default}
 .day-col.blank-day .add-row{display:none}
 
-.col-hdr-row{display:grid;grid-template-columns:1fr 62px 18px;padding:2px 4px;background:var(--bg-col-hdr);font-size:9px;color:var(--text-muted);border-bottom:1px solid var(--border-col);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.col-hdr-row{display:grid;grid-template-columns:1fr 58px 16px;padding:2px 3px;background:var(--bg-col-hdr);font-size:9px;color:var(--text-muted);border-bottom:1px solid var(--border-col);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
 .tx-list{flex:1}
-.tx-row{display:grid;grid-template-columns:1fr 62px 18px;padding:2px 4px;border-bottom:1px solid var(--border-col);align-items:center;min-height:20px}
+.tx-row{display:grid;grid-template-columns:1fr 58px 16px;padding:2px 3px;border-bottom:1px solid var(--border-col);align-items:center;min-height:20px}
 .tx-row:hover{background:var(--tx-hover)}
 .tx-row.paid-past{opacity:0.4;background:#f0f0f4!important}
 html[data-theme="dark"] .tx-row.paid-past{background:#111118!important}
@@ -930,7 +930,6 @@ function parseBankCSV(text) {
   const rows = parseCSV(text);
   if (rows.length < 2) return [];
 
-  // Find column indices from header row
   const headers = rows[0].map(h => h.toLowerCase().replace(/"/g,'').trim());
   const colDate  = headers.findIndex(h => h.includes('processed date') || h.includes('date'));
   const colDesc  = headers.findIndex(h => h.includes('description'));
@@ -943,25 +942,17 @@ function parseBankCSV(text) {
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.length < 2) continue;
-
     const rawDate = (row[colDate]||'').replace(/"/g,'').trim();
-    // Accept YYYY-MM-DD
     const dateMatch = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!dateMatch) continue;
-    const dateKey = rawDate; // already YYYY-MM-DD
-    if (!dateKey.startsWith(String(YEAR))) continue;
-
+    if (!rawDate.startsWith(String(YEAR))) continue;
     const rawAmt = parseAmount(row[colAmt]);
     if (rawAmt === null || rawAmt === 0) continue;
-
     const typeRaw = (row[colType]||'').replace(/"/g,'').trim().toLowerCase();
     const isDebit = typeRaw === 'debit';
     const amount = isDebit ? -Math.abs(rawAmt) : Math.abs(rawAmt);
-
-    // Store original bank description as a note, name = UPDATE ME
     const desc = colDesc >= 0 ? (row[colDesc]||'').replace(/"/g,'').trim() : '';
-
-    results.push({ dateKey, amount, desc });
+    results.push({ dateKey: rawDate, amount, desc });
   }
   return results;
 }
@@ -969,63 +960,147 @@ function parseBankCSV(text) {
 function openBankImportModal(csvText) {
   const root = document.getElementById('modal-root');
   let bankRows;
-  try {
-    bankRows = parseBankCSV(csvText);
-  } catch(e) {
-    alert('Could not parse bank CSV.');
-    return;
-  }
+  try { bankRows = parseBankCSV(csvText); }
+  catch(e) { alert('Could not parse bank CSV.'); return; }
 
   if (!bankRows.length) {
     alert('No valid transactions found in this CSV for ' + YEAR + '.');
     return;
   }
 
-  // Figure out which are new (match by date + amount — bank tx won't have names yet)
-  const preview = [];
+  // Separate into: already bank-imported dupes, same-amount conflicts, and clean new
+  const alreadyImported = [];
+  const conflicts = [];  // {bankRow, existingTx, existingDayKey}
+  const cleanNew = [];
+
   bankRows.forEach(row => {
     const d = getDay(row.dateKey);
-    // Check if an "UPDATE ME" with the same amount already exists (avoid re-importing)
-    const exists = d.transactions.some(t =>
+
+    // 1. Already imported this exact bank entry before (same amount + __bankImport flag)
+    const prevImport = d.transactions.find(t =>
       t.__bankImport && Math.abs((t.amount||0) - row.amount) < 0.01
     );
-    if (!exists) preview.push(row);
+    if (prevImport) { alreadyImported.push(row); return; }
+
+    // 2. Existing non-bank transaction with the same amount on the same date
+    const sameAmtTx = d.transactions.find(t =>
+      !t.__opening && !t.__bankImport &&
+      Math.abs((t.amount||0) - row.amount) < 0.01
+    );
+    if (sameAmtTx) { conflicts.push({ bankRow: row, existingTx: sameAmtTx }); return; }
+
+    // 3. Clean new — just add it
+    cleanNew.push(row);
   });
 
-  root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:500px;width:95%">
-    <h3>🏦 Bank Import Preview</h3>
-    <div class="import-summary">
-      Found <strong>${bankRows.length} bank transactions</strong> in this file<br>
-      <strong style="color:#7c3aed">${preview.length} new</strong> will be added as <strong>"UPDATE ME"</strong> &nbsp;·&nbsp;
-      <span style="color:var(--text-muted)">${bankRows.length - preview.length} already imported (skipped)</span><br>
-      <span style="color:var(--text-muted);font-size:10px">Original bank descriptions are saved as notes — click any transaction to rename it.</span>
+  // If there are conflicts, show the conflict review screen first
+  if (conflicts.length > 0) {
+    showConflictReview(conflicts, cleanNew, alreadyImported);
+  } else {
+    showBankPreview(cleanNew, alreadyImported, []);
+  }
+}
+
+// conflict decisions: array of {bankRow, existingTx, decision: 'skip'|'add'}
+function showConflictReview(conflicts, cleanNew, alreadyImported, decisions = []) {
+  const root = document.getElementById('modal-root');
+  const idx = decisions.length;
+
+  // All conflicts reviewed — show final preview
+  if (idx >= conflicts.length) {
+    const toAdd = decisions.filter(d => d.decision === 'add').map(d => d.bankRow);
+    showBankPreview([...cleanNew, ...toAdd], alreadyImported, decisions);
+    return;
+  }
+
+  const { bankRow, existingTx } = conflicts[idx];
+  const remaining = conflicts.length - idx;
+
+  root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:480px;width:95%">
+    <h3>⚠️ Possible Duplicate — ${idx+1} of ${conflicts.length}</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">
+      Found a transaction in your planner on <strong>${bankRow.dateKey}</strong> with the same amount as the bank entry. Is this the same transaction?
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+      <div style="background:var(--bg-card2);border:1px solid var(--border-col);border-radius:6px;padding:10px">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;font-weight:700">Already in Planner</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text-primary);margin-bottom:4px">${existingTx.name||'—'}</div>
+        <div style="font-size:12px;font-family:'Roboto Mono',monospace;font-weight:700;${(existingTx.amount||0)<0?'color:#dc2626':'color:#16a34a'}">${fmtM(existingTx.amount||0)}</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:4px">${bankRow.dateKey}</div>
+      </div>
+      <div style="background:var(--bg-card2);border:1px solid #7c3aed44;border-radius:6px;padding:10px">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#7c3aed;margin-bottom:6px;font-weight:700">From Bank CSV</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;word-break:break-word;line-height:1.4">${bankRow.desc||'No description'}</div>
+        <div style="font-size:12px;font-family:'Roboto Mono',monospace;font-weight:700;${bankRow.amount<0?'color:#dc2626':'color:#16a34a'}">${fmtM(bankRow.amount)}</div>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:4px">${bankRow.dateKey}</div>
+      </div>
     </div>
-    ${preview.length > 0 ? `
+
+    <p style="font-size:10px;color:var(--text-muted);text-align:center;margin:8px 0">${remaining > 1 ? `${remaining - 1} more conflict${remaining-1!==1?'s':''} to review after this` : 'Last conflict to review'}</p>
+
+    <div class="mbtns" style="justify-content:space-between">
+      <button id="mskip" style="background:#1e4d2e;border-color:#1a8040;color:#86efac;flex:1;margin-right:6px">✓ Same — Skip Import</button>
+      <button id="madd" style="background:#7c3aed;border-color:#6d28d9;color:#fff;flex:1" class="mbtns">+ Different — Add Anyway</button>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <button id="mskipall" style="background:none;border:none;color:var(--text-muted);font-size:10px;cursor:pointer;text-decoration:underline">Skip all remaining conflicts</button>
+    </div>
+  </div></div>`;
+
+  document.getElementById('mov').onclick = e => { if(e.target.id==='mov') root.innerHTML=''; };
+
+  document.getElementById('mskip').onclick = () => {
+    showConflictReview(conflicts, cleanNew, alreadyImported, [...decisions, {bankRow, existingTx, decision:'skip'}]);
+  };
+  document.getElementById('madd').onclick = () => {
+    showConflictReview(conflicts, cleanNew, alreadyImported, [...decisions, {bankRow, existingTx, decision:'add'}]);
+  };
+  document.getElementById('mskipall').onclick = () => {
+    const rest = conflicts.slice(idx).map(c => ({...c, decision:'skip'}));
+    const toAdd = decisions.filter(d => d.decision === 'add').map(d => d.bankRow);
+    showBankPreview([...cleanNew, ...toAdd], alreadyImported, [...decisions, ...rest]);
+  };
+}
+
+function showBankPreview(toAdd, alreadyImported, decisions) {
+  const root = document.getElementById('modal-root');
+  const skipped = decisions.filter(d => d.decision === 'skip').length;
+  const addedFromConflicts = decisions.filter(d => d.decision === 'add').length;
+
+  root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:500px;width:95%">
+    <h3>🏦 Bank Import — Ready to Add</h3>
+    <div class="import-summary">
+      <strong style="color:#7c3aed">${toAdd.length} transactions</strong> will be added as "UPDATE ME"
+      ${skipped ? `&nbsp;·&nbsp; <span style="color:var(--text-muted)">${skipped} conflict${skipped!==1?'s':''} skipped</span>` : ''}
+      ${alreadyImported.length ? `&nbsp;·&nbsp; <span style="color:var(--text-muted)">${alreadyImported.length} already imported</span>` : ''}
+      <br><span style="font-size:10px;color:var(--text-muted)">Click any "UPDATE ME" after importing to rename it — the original bank description will be shown.</span>
+    </div>
+    ${toAdd.length > 0 ? `
     <div class="import-preview">
-      ${preview.slice(0,80).map(row=>`
+      ${toAdd.slice(0,80).map(row=>`
         <div class="import-preview-row">
           <span class="import-preview-date">${row.dateKey}</span>
-          <span class="import-preview-name" style="color:var(--text-muted);font-style:italic">UPDATE ME</span>
+          <span class="import-preview-name" style="color:#9333ea;font-style:italic">UPDATE ME</span>
           <span class="import-preview-amt ${row.amount<0?'neg':'pos'}">${fmtM(row.amount)}</span>
         </div>`).join('')}
-      ${preview.length > 80 ? `<div class="import-preview-row" style="color:var(--text-muted);font-style:italic">...and ${preview.length-80} more</div>` : ''}
-    </div>` : `<p style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing new — all transactions from this file already exist.</p>`}
+      ${toAdd.length > 80 ? `<div class="import-preview-row" style="color:var(--text-muted);font-style:italic">...and ${toAdd.length-80} more</div>` : ''}
+    </div>` : `<p style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing to add.</p>`}
     <div class="mbtns">
       <button id="mcancel">Cancel</button>
-      ${preview.length > 0 ? '<button class="mbsave" id="mbankimport">Import ' + preview.length + ' Transactions</button>' : ''}
+      ${toAdd.length > 0 ? `<button class="mbsave" id="mbankimport">Import ${toAdd.length} Transactions</button>` : ''}
     </div>
   </div></div>`;
 
   document.getElementById('mcancel').onclick = () => root.innerHTML = '';
   document.getElementById('mov').onclick = e => { if(e.target.id==='mov') root.innerHTML=''; };
 
-  if (preview.length > 0) {
+  if (toAdd.length > 0) {
     document.getElementById('mbankimport').onclick = () => {
       const now = Date.now();
-      let addedCount = 0;
-      preview.forEach(row => {
+      let count = 0;
+      toAdd.forEach(row => {
         const d = getDay(row.dateKey);
-        // Double-check not already there
         const exists = d.transactions.some(t =>
           t.__bankImport && Math.abs((t.amount||0) - row.amount) < 0.01
         );
@@ -1034,18 +1109,18 @@ function openBankImportModal(csvText) {
             name: 'UPDATE ME',
             amount: row.amount,
             paid: false,
-            category: row.amount > 0 ? 'OTHER' : 'OTHER',
-            __bankImport: true,       // flag for dupe detection
-            __bankDesc: row.desc,     // original bank description stored here
-            __importedAt: now         // for NEW badge
+            category: 'OTHER',
+            __bankImport: true,
+            __bankDesc: row.desc,
+            __importedAt: now
           });
-          addedCount++;
+          count++;
         }
       });
       scheduleSave();
       root.innerHTML = '';
       renderAll();
-      setSyncStatus('synced', `✓ Bank import: ${addedCount} transactions added`);
+      setSyncStatus('synced', `✓ Bank import: ${count} transactions added`);
     };
   }
 }
