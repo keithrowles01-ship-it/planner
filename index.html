@@ -619,22 +619,31 @@ function handleDrop(e, toKey) {
   document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
   if (!dragState) return;
   const { fromKey, txRef } = dragState;
-  if (fromKey === toKey) return;
+  if (fromKey === toKey) { dragState = null; return; }
 
   const fromDay = getDay(fromKey);
   const toDay = getDay(toKey);
 
   // Find the transaction by reference (identity) — immune to index shifts
   const idx = fromDay.transactions.indexOf(txRef);
-  if (idx === -1 || txRef.__opening) return;
+  if (idx === -1 || txRef.__opening) { dragState = null; return; }
 
-  // Move: remove from source, add to destination
+  // Clone the tx before splicing so we have a clean copy for the destination
+  const txCopy = {...txRef};
+
+  // Remove from source
   fromDay.transactions.splice(idx, 1);
-  toDay.transactions.push({...txRef});
+
+  // Add to destination — if destination day was empty/new, getDay already initialised it
+  toDay.transactions.push(txCopy);
 
   dragState = null;
+
+  // Rebuild balance map from scratch and re-render fully
   scheduleSave();
-  renderAll();
+
+  // Use setTimeout to ensure data mutations are fully committed before re-render
+  setTimeout(() => renderAll(), 0);
 }
 // Given a start date key, repeat type, and tx object, stamp it onto all matching days
 function applyRepeat(startKey, repeatType, specificDate, tx) {
@@ -1195,7 +1204,7 @@ function showBankPreview(toAdd, alreadyImported, decisions) {
 function renderDayCol(day, m, balMap, isBlank) {
   const key=dk(day); const inMonth=day.getMonth()===m&&day.getFullYear()===YEAR;
   const past=inMonth&&isPast(day); const tod=inMonth&&isToday(day);
-  const d=inMonth?getDay(key):null; const endBal=inMonth?(balMap[key]??null):null;
+  const d=inMonth?getDay(key):null; const endBal=inMonth?(balMap[key]!==undefined?balMap[key]:null):null;
   const di=(day.getDay()+6)%7;
   const col=document.createElement('div');
   col.className=`day-col${isBlank?' blank-day':''}${past&&!isBlank?' past-col':''}`;
