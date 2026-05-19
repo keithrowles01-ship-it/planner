@@ -167,6 +167,33 @@ html[data-theme="dark"] .tx-row.opening-bal .tx-amt{color:#fbbf24!important}
 .tx-nm{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500}
 .tx-nm:hover{background:rgba(0,0,0,0.05)}
 html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
+
+/* NEW badge shown on freshly imported transactions */
+.tx-new-badge{
+  display:inline-block;font-size:7px;font-weight:700;letter-spacing:0.5px;
+  background:#7c3aed;color:#fff;border-radius:3px;padding:1px 3px;
+  margin-left:3px;vertical-align:middle;text-transform:uppercase;
+  flex-shrink:0;white-space:nowrap;
+}
+html[data-theme="dark"] .tx-new-badge{background:#6d28d9}
+
+/* Import preview modal specifics */
+.import-preview{max-height:260px;overflow-y:auto;margin-top:10px;border:1px solid var(--border-col);border-radius:5px}
+.import-preview-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border-col);font-size:10px;gap:8px}
+.import-preview-row:last-child{border-bottom:none}
+.import-preview-row:nth-child(odd){background:var(--bg-card2)}
+.import-preview-date{color:var(--text-muted);font-family:'Roboto Mono',monospace;white-space:nowrap;font-size:9px}
+.import-preview-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.import-preview-amt{font-family:'Roboto Mono',monospace;font-weight:700;white-space:nowrap}
+.import-summary{font-size:11px;color:var(--text-muted);margin-top:8px;padding:6px 8px;background:var(--bg-card2);border-radius:5px;line-height:1.7}
+.import-summary strong{color:var(--text-primary)}
+
+/* Drag-over state for import */
+.import-drop-zone{
+  border:2px dashed var(--border-modal);border-radius:8px;padding:20px;text-align:center;
+  cursor:pointer;font-size:12px;color:var(--text-muted);transition:all 0.15s;margin-top:12px
+}
+.import-drop-zone:hover,.import-drop-zone.drag-over{border-color:#7c3aed;background:rgba(124,58,237,0.05);color:var(--text-primary)}
 .tx-amt{font-size:10px;text-align:right;font-family:'Roboto Mono',monospace;font-weight:700}
 .tx-amt.neg{color:#dc2626}.tx-amt.pos{color:#16a34a}
 html[data-theme="dark"] .tx-amt.neg{color:#f87171}
@@ -243,6 +270,8 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
         <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
         <span class="tr-val warn" id="yearlow-hdr">—</span>
         <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
+        <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
+        <input type="file" id="csv-file-input" accept=".csv" style="display:none">
         <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
         <button class="hbtn danger" id="btn-signout">Sign Out</button>
       </div>
@@ -692,6 +721,191 @@ function openModal(dk_key, txIdx) {
   setTimeout(()=>document.getElementById('mn').focus(),30);
 }
 
+// ── CSV IMPORTER ─────────────────────────────────────────────
+// Parses the Thu-Wed column layout from the spreadsheet
+// Columns per day: name(0), amount(1), paid(2), repeating every 3 cols
+// Day order in CSV: Thu(0), Fri(3), Sat(6), Sun(9), Mon(12), Tue(15), Wed(18)
+// But we re-map to actual calendar dates from the date row
+
+function parseAmount(s) {
+  if (!s || !s.trim()) return null;
+  const clean = s.replace(/[$,\s"(]/g,'').replace(/\)/g,'').replace(/−/g,'-');
+  const n = parseFloat(clean);
+  return isNaN(n) ? null : n;
+}
+
+function parseCSV(text) {
+  // Split into rows, handle quoted fields
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    const row = [];
+    let inQuote = false, cell = '';
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQuote = !inQuote; }
+      else if (c === ',' && !inQuote) { row.push(cell.trim()); cell = ''; }
+      else { cell += c; }
+    }
+    row.push(cell.trim());
+    rows.push(row);
+  }
+  return rows;
+}
+
+function normalizeDate(s, year) {
+  if (!s) return null;
+  s = s.trim().replace(/"/g,'');
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (m) {
+    const mo = parseInt(m[1]), da = parseInt(m[2]);
+    if (mo >= 1 && mo <= 12 && da >= 1 && da <= 31)
+      return `${year}-${String(mo).padStart(2,'0')}-${String(da).padStart(2,'0')}`;
+  }
+  return null;
+}
+
+function extractTransactionsFromCSV(text) {
+  const rows = parseCSV(text);
+  const DAY_COLS = [0, 3, 6, 9, 12, 15, 18]; // col offsets for Thu,Fri,Sat,Sun,Mon,Tue,Wed
+  const extracted = {}; // dateKey -> [{name,amount,paid}]
+  let year = YEAR;
+
+  let i = 0;
+  while (i < rows.length) {
+    const row = rows[i];
+    const cell0 = (row[0]||'').trim();
+
+    // Detect week header row — contains 💰 or 'Thursday'
+    if (cell0.includes('💰') || cell0.toLowerCase().includes('thursday')) {
+      // Next row should be the date row
+      const dateRow = rows[i+1] || [];
+      const dates = DAY_COLS.map(col => normalizeDate(dateRow[col], year));
+
+      // Skip header row (Name/Amount/Paid), start at i+3
+      let j = i + 3;
+      while (j < rows.length) {
+        const trow = rows[j] || [];
+        const c0 = (trow[0]||'').trim();
+        // Stop at next week block or Balance row
+        if (c0.includes('💰') || c0.toLowerCase().includes('thursday') || c0.toLowerCase() === 'balance' || c0.toLowerCase() === 'name') break;
+
+        // Parse each day column
+        DAY_COLS.forEach((col, di) => {
+          const dateKey = dates[di];
+          if (!dateKey) return;
+          const name = (trow[col]||'').trim().replace(/^"|"$/g,'');
+          const amtStr = trow[col+1] || '';
+          const paidStr = (trow[col+2]||'').trim().toUpperCase();
+          if (!name || name === 'Balance' || name === 'Name') return;
+          const amount = parseAmount(amtStr);
+          if (amount === null) return;
+          const paid = paidStr === 'TRUE';
+          if (!extracted[dateKey]) extracted[dateKey] = [];
+          extracted[dateKey].push({ name, amount, paid });
+        });
+        j++;
+      }
+      i = j;
+      continue;
+    }
+    i++;
+  }
+  return extracted;
+}
+
+function mergeImportedData(extracted) {
+  // Returns array of newly added tx for preview
+  const added = [];
+  const now = Date.now();
+
+  Object.entries(extracted).forEach(([dateKey, txs]) => {
+    // Only process dates within our year
+    if (!dateKey.startsWith(String(YEAR))) return;
+    const d = getDay(dateKey);
+    txs.forEach(tx => {
+      // Smart merge: skip if same name+amount already exists
+      const exists = d.transactions.some(t =>
+        t.name === tx.name && Math.abs((t.amount||0) - tx.amount) < 0.01
+      );
+      if (!exists) {
+        const newTx = { ...tx, category: detectCat(tx.name), __importedAt: now };
+        d.transactions.push(newTx);
+        added.push({ dateKey, ...newTx });
+      }
+    });
+  });
+
+  return added;
+}
+
+function openImportModal(csvText) {
+  const root = document.getElementById('modal-root');
+
+  // Parse first to show preview
+  let extracted;
+  try {
+    extracted = extractTransactionsFromCSV(csvText);
+  } catch(e) {
+    root.innerHTML = '';
+    alert('Could not parse CSV. Make sure it\'s the same format as your spreadsheet.');
+    return;
+  }
+
+  // Figure out what would be NEW (not already in data)
+  const preview = [];
+  Object.entries(extracted).forEach(([dateKey, txs]) => {
+    if (!dateKey.startsWith(String(YEAR))) return;
+    const d = getDay(dateKey);
+    txs.forEach(tx => {
+      const exists = d.transactions.some(t =>
+        t.name === tx.name && Math.abs((t.amount||0) - tx.amount) < 0.01
+      );
+      if (!exists) preview.push({ dateKey, ...tx });
+    });
+  });
+
+  const totalDates = Object.keys(extracted).filter(k=>k.startsWith(String(YEAR))).length;
+  const totalTx = Object.values(extracted).flat().length;
+
+  root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:480px;width:95%">
+    <h3>📥 Import Preview</h3>
+    <div class="import-summary">
+      CSV contains <strong>${totalTx} transactions</strong> across <strong>${totalDates} days</strong><br>
+      <strong style="color:#7c3aed">${preview.length} new transactions</strong> will be added &nbsp;·&nbsp;
+      <span style="color:var(--text-muted)">${totalTx - preview.length} already exist (skipped)</span>
+    </div>
+    ${preview.length > 0 ? `
+    <div class="import-preview">
+      ${preview.slice(0,80).map(tx=>`
+        <div class="import-preview-row">
+          <span class="import-preview-date">${tx.dateKey}</span>
+          <span class="import-preview-name">${tx.name}</span>
+          <span class="import-preview-amt ${tx.amount<0?'neg':'pos'}">${fmtM(tx.amount)}</span>
+        </div>`).join('')}
+      ${preview.length > 80 ? `<div class="import-preview-row" style="color:var(--text-muted);font-style:italic">...and ${preview.length-80} more</div>` : ''}
+    </div>` : `<p style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing new to import — all transactions already exist.</p>`}
+    <div class="mbtns">
+      <button id="mcancel">Cancel</button>
+      ${preview.length > 0 ? '<button class="mbsave" id="mimport">Import ' + preview.length + ' Transactions</button>' : ''}
+    </div>
+  </div></div>`;
+
+  document.getElementById('mcancel').onclick = () => root.innerHTML = '';
+  document.getElementById('mov').onclick = e => { if(e.target.id==='mov') root.innerHTML=''; };
+
+  if (preview.length > 0) {
+    document.getElementById('mimport').onclick = () => {
+      const added = mergeImportedData(extracted);
+      scheduleSave();
+      root.innerHTML = '';
+      renderAll();
+      // Flash sync status with count
+      setSyncStatus('synced', `✓ Imported ${added.length} new transactions`);
+    };
+  }
+}
+
 // ── RENDER ───────────────────────────────────────────────────
 function renderDayCol(day, m, balMap, isBlank) {
   const key=dk(day); const inMonth=day.getMonth()===m&&day.getFullYear()===YEAR;
@@ -716,7 +930,10 @@ function renderDayCol(day, m, balMap, isBlank) {
       else if(tx.paid) paidClass=past?'paid-past':'paid-future';
       else if(past) paidClass='unpaid-past';
       row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}`;
-      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}">${tx.name||''}</span>
+      // Show NEW badge if imported within the last 7 days
+      const isNew = tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
+      const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
+      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:2px;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.name||''}</span>${newBadge}</span>
         <span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span>
         <span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
       row.querySelector('.tx-nm').onclick=()=>openModal(key,ti);
@@ -873,6 +1090,31 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ── HEADER BUTTONS ───────────────────────────────────────────
+document.getElementById('btn-import').onclick = () => {
+  document.getElementById('csv-file-input').value = '';
+  document.getElementById('csv-file-input').click();
+};
+
+document.getElementById('csv-file-input').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => openImportModal(ev.target.result);
+  reader.readAsText(file);
+};
+
+// Also support drag-and-drop onto the whole page
+document.body.addEventListener('dragover', e => { e.preventDefault(); });
+document.body.addEventListener('drop', e => {
+  e.preventDefault();
+  const file = [...(e.dataTransfer.files||[])].find(f=>f.name.endsWith('.csv'));
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => openImportModal(ev.target.result);
+    reader.readAsText(file);
+  }
+});
+
 document.getElementById('btn-theme').onclick = () => {
   theme = theme==='light' ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', theme);
