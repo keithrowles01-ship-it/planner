@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v22 -->
+<!-- RFP-BUILD-v23 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -237,6 +237,31 @@ html[data-theme="dark"] .cp-util .tx-nm{color:#5eead4}html[data-theme="dark"] .c
 html[data-theme="dark"] .cp-medical .tx-nm{color:#fb923c}html[data-theme="dark"] .cp-food .tx-nm{color:#a3e635}
 html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
 
+
+/* Stats panel */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border-col);border-radius:8px;padding:14px;box-shadow:var(--shadow)}
+.stat-card-label{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);font-weight:600;margin-bottom:6px;font-family:'Roboto',sans-serif}
+.stat-card-value{font-size:22px;font-weight:700;font-family:'Roboto Mono',monospace}
+.stat-card-sub{font-size:10px;color:var(--text-muted);margin-top:4px;font-family:'Roboto',sans-serif}
+.stats-section{margin-bottom:28px}
+.stats-section-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;font-family:'Roboto',sans-serif;border-bottom:1px solid var(--border-col);padding-bottom:6px}
+.stats-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;font-family:'Roboto',sans-serif}
+.stats-bar-label{width:120px;text-align:right;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.stats-bar-track{flex:1;background:var(--border-col);border-radius:3px;height:14px;overflow:hidden}
+.stats-bar-fill{height:100%;border-radius:3px;transition:width 0.4s}
+.stats-bar-val{width:80px;font-family:'Roboto Mono',monospace;font-weight:600;font-size:10px;color:var(--text-primary);flex-shrink:0}
+.month-bal-chart{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:8px}
+.month-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.month-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height 0.3s}
+.month-bar-lbl{font-size:8px;color:var(--text-muted);font-family:'Roboto',sans-serif;text-align:center}
+.month-bar-val{font-size:7px;color:var(--text-muted);font-family:'Roboto Mono',monospace;text-align:center}
+.stats-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.stats-two-col{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}}
+.top-tx-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:4px;font-size:11px;font-family:'Roboto',sans-serif;border-bottom:1px solid var(--border-col)}
+.top-tx-row:last-child{border-bottom:none}
+.top-tx-row:nth-child(odd){background:var(--bg-card2)}
+
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:500}
 .modal{background:var(--bg-modal);border:1px solid var(--border-modal);border-radius:10px;padding:20px;min-width:290px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.25);font-family:'Roboto',sans-serif}
 .modal h3{font-size:13px;margin-bottom:12px;color:var(--text-primary);font-weight:700}
@@ -282,6 +307,7 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
         <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
         <span class="tr-val warn" id="yearlow-hdr">—</span>
         <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
+        <button class="hbtn" id="btn-stats" style="background:#4c1d95;border-color:#6d28d9;color:#ddd6fe">📊 Stats</button>
         <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
         <input type="file" id="csv-file-input" accept=".csv" style="display:none">
         <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
@@ -300,6 +326,18 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
   </div>
   <div id="months-container" class="months-container">
     <div class="page-wrap" id="months-inner"></div>
+  </div>
+</div>
+
+
+<!-- Stats Panel -->
+<div id="stats-overlay" style="display:none;position:fixed;inset:0;background:var(--bg-page);z-index:300;overflow-y:auto">
+  <div style="max-width:1100px;margin:0 auto;padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:18px;font-weight:700;color:var(--text-primary);font-family:'Roboto',sans-serif">📊 2026 Financial Stats</h2>
+      <button id="btn-stats-close" class="hbtn" style="font-size:13px">✕ Close</button>
+    </div>
+    <div id="stats-content"></div>
   </div>
 </div>
 
@@ -1329,6 +1367,277 @@ document.getElementById('btn-theme').onclick = () => {
 
 document.getElementById('btn-add-today').onclick = () => {
   getDay(todayKey); openModal(todayKey, -1);
+};
+
+
+// ── STATS ──────────────────────────────────────────────────────
+function computeStats() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayKey = dk(today);
+  const balMap = buildBalanceMap();
+
+  // Monthly summaries
+  const monthly = Array.from({length:12}, (_,m) => {
+    let income=0, expenses=0, txCount=0;
+    const cur = new Date(YEAR,m,1);
+    while(cur.getMonth()===m) {
+      const key=dk(cur); const d=data[key];
+      if(d && d.transactions) {
+        d.transactions.forEach(tx => {
+          if(tx.__opening) return;
+          if((tx.amount||0)>0) income+=tx.amount;
+          else expenses+=Math.abs(tx.amount);
+          txCount++;
+        });
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    const endBal = balMap[dk(new Date(YEAR,m+1,0))]??null;
+    return {m, income, expenses, net:income-expenses, txCount, endBal};
+  });
+
+  // Category breakdown (expenses only, all time)
+  const catTotals = {};
+  CATS.forEach(c => catTotals[c]=0);
+  const cur = new Date(YEAR,0,1); const end = new Date(YEAR,11,31);
+  while(cur<=end) {
+    const key=dk(cur); const d=data[key];
+    if(d && d.transactions) {
+      d.transactions.forEach(tx => {
+        if(tx.__opening||(tx.amount||0)>=0) return;
+        const cat = tx.category||detectCat(tx.name);
+        catTotals[cat] = (catTotals[cat]||0) + Math.abs(tx.amount);
+      });
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+
+  // YTD totals (only months up to today)
+  let ytdIncome=0, ytdExpenses=0, ytdTx=0;
+  monthly.forEach(({m,income,expenses,txCount}) => {
+    if(new Date(YEAR,m,1)<=today) {
+      ytdIncome+=income; ytdExpenses+=expenses; ytdTx+=txCount;
+    }
+  });
+
+  // Biggest single expenses (top 10, all dates up to today)
+  const bigExpenses = [];
+  const cur2 = new Date(YEAR,0,1);
+  while(cur2<=today) {
+    const key=dk(cur2); const d=data[key];
+    if(d && d.transactions) {
+      d.transactions.forEach(tx => {
+        if(!tx.__opening && (tx.amount||0)<0)
+          bigExpenses.push({name:tx.name, amount:tx.amount, date:key});
+      });
+    }
+    cur2.setDate(cur2.getDate()+1);
+  }
+  bigExpenses.sort((a,b)=>a.amount-b.amount);
+
+  // Biggest income items
+  const bigIncome = [];
+  const cur3 = new Date(YEAR,0,1);
+  while(cur3<=today) {
+    const key=dk(cur3); const d=data[key];
+    if(d && d.transactions) {
+      d.transactions.forEach(tx => {
+        if(!tx.__opening && (tx.amount||0)>0)
+          bigIncome.push({name:tx.name, amount:tx.amount, date:key});
+      });
+    }
+    cur3.setDate(cur3.getDate()+1);
+  }
+  bigIncome.sort((a,b)=>b.amount-a.amount);
+
+  // Unpaid past transactions
+  const unpaid = [];
+  const cur4 = new Date(YEAR,0,1);
+  while(cur4<today) {
+    const key=dk(cur4); const d=data[key];
+    if(d && d.transactions) {
+      d.transactions.forEach(tx => {
+        if(!tx.__opening && !tx.paid && (tx.amount||0)!==0)
+          unpaid.push({name:tx.name, amount:tx.amount, date:key});
+      });
+    }
+    cur4.setDate(cur4.getDate()+1);
+  }
+
+  // Avg daily spend (ytd)
+  const daysSoFar = Math.max(1, Math.floor((today - new Date(YEAR,0,1))/(1000*60*60*24))+1);
+  const avgDailySpend = ytdExpenses / daysSoFar;
+
+  // Current balance
+  const currentBal = balMap[todayKey]??null;
+
+  // Lowest balance of year so far
+  let lowestBal = Infinity; let lowestDate = '';
+  const cur5 = new Date(YEAR,0,1);
+  while(cur5<=today) {
+    const v = balMap[dk(cur5)];
+    if(v!==null&&v!==undefined&&v<lowestBal){lowestBal=v;lowestDate=dk(cur5);}
+    cur5.setDate(cur5.getDate()+1);
+  }
+
+  return {monthly, catTotals, ytdIncome, ytdExpenses, ytdTx, bigExpenses, bigIncome,
+          unpaid, avgDailySpend, currentBal, lowestBal:lowestBal===Infinity?null:lowestBal, lowestDate};
+}
+
+function renderStats() {
+  const s = computeStats();
+  const el = document.getElementById('stats-content');
+  if(!el) return;
+
+  const fmt2 = n => n<0?`-$${Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`:`$${n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const fmtK = n => {
+    const abs=Math.abs(n);
+    const s=abs>=1000?`$${(abs/1000).toFixed(1)}k`:`$${abs.toFixed(0)}`;
+    return n<0?`-${s}`:s;
+  };
+  const colPos = '#16a34a'; const colNeg = '#dc2626'; const colNeu = '#6366f1';
+
+  // ── Summary cards ───────────────────────────────────────────
+  const netYTD = s.ytdIncome - s.ytdExpenses;
+  const cards = [
+    {label:'Current Balance', value:fmt2(s.currentBal??0), sub:'End of today', color: s.currentBal>=1000?colPos:s.currentBal>=200?'#d97706':colNeg},
+    {label:'YTD Income', value:fmt2(s.ytdIncome), sub:'Money in so far', color:colPos},
+    {label:'YTD Expenses', value:fmt2(s.ytdExpenses), sub:'Money out so far', color:colNeg},
+    {label:'YTD Net', value:fmt2(netYTD), sub:netYTD>=0?'Ahead ✓':'Behind ✗', color:netYTD>=0?colPos:colNeg},
+    {label:'Avg Daily Spend', value:fmt2(s.avgDailySpend), sub:'Per day this year', color:'#d97706'},
+    {label:'Lowest Balance', value:fmt2(s.lowestBal??0), sub:s.lowestDate||'—', color:s.lowestBal<200?colNeg:s.lowestBal<500?'#d97706':colPos},
+    {label:'Unpaid Past', value:s.unpaid.length, sub:s.unpaid.length>0?`$${Math.abs(s.unpaid.reduce((a,t)=>a+t.amount,0)).toFixed(2)} total`:'All clear ✓', color:s.unpaid.length>0?colNeg:colPos},
+    {label:'Transactions YTD', value:s.ytdTx, sub:'Entries logged', color:colNeu},
+  ];
+
+  let html = `<div class="stats-grid">${cards.map(c=>`
+    <div class="stat-card">
+      <div class="stat-card-label">${c.label}</div>
+      <div class="stat-card-value" style="color:${c.color}">${c.value}</div>
+      <div class="stat-card-sub">${c.sub}</div>
+    </div>`).join('')}</div>`;
+
+  // ── Monthly balance bar chart ───────────────────────────────
+  const monthBals = s.monthly.map(m=>m.endBal??0);
+  const maxBal = Math.max(...monthBals.filter(v=>v!==null), 1);
+  const minBal = Math.min(...monthBals.filter(v=>v!==null), 0);
+  const range = Math.max(maxBal - minBal, 1);
+  const todayM = new Date().getMonth();
+
+  html += `<div class="stats-section">
+    <div class="stats-section-title">Month-End Balance</div>
+    <div class="month-bal-chart">
+      ${s.monthly.map(({m,endBal})=>{
+        const val = endBal??0;
+        const pct = Math.max(2, Math.round(((val-minBal)/range)*100));
+        const isFuture = new Date(YEAR,m,1) > new Date();
+        const color = isFuture?'#4b5563':val>=1000?'#16a34a':val>=200?'#d97706':'#dc2626';
+        const opacity = isFuture?'0.4':'1';
+        const isNow = m===todayM;
+        return `<div class="month-bar-wrap">
+          <div class="month-bar-val">${fmtK(val)}</div>
+          <div class="month-bar" style="height:${pct}%;background:${color};opacity:${opacity};${isNow?'outline:2px solid #818cf8;outline-offset:1px':''}"></div>
+          <div class="month-bar-lbl" style="${isNow?'color:#818cf8;font-weight:700':''}">${MONTH_NAMES[m].slice(0,3)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // ── Monthly income vs expenses ──────────────────────────────
+  html += `<div class="stats-two-col">`;
+
+  // Category breakdown
+  const catEntries = Object.entries(s.catTotals)
+    .filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const maxCat = catEntries[0]?.[1]||1;
+  const catColors = {PAY:'#16a34a',GAS:'#16a34a',SUB:'#3b82f6',INS:'#f59e0b',LOAN:'#8b5cf6',CC:'#6d28d9',UTIL:'#14b8a6',RENT:'#ef4444',MEDICAL:'#f97316',FOOD:'#84cc16',OTHER:'#6b7280'};
+
+  html += `<div class="stats-section">
+    <div class="stats-section-title">Spending by Category (YTD)</div>
+    ${catEntries.map(([cat,val])=>`
+      <div class="stats-bar-row">
+        <div class="stats-bar-label">${cat}</div>
+        <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round((val/maxCat)*100)}%;background:${catColors[cat]||'#6b7280'}"></div></div>
+        <div class="stats-bar-val">${fmtK(val)}</div>
+      </div>`).join('')}
+  </div>`;
+
+  // Monthly net income
+  const monthNets = s.monthly.map(({m,income,expenses,net})=>({m,income,expenses,net}));
+  const maxNet = Math.max(...monthNets.map(n=>Math.max(n.income,n.expenses)),1);
+
+  html += `<div class="stats-section">
+    <div class="stats-section-title">Monthly Income vs Expenses</div>
+    ${monthNets.map(({m,income,expenses})=>{
+      const isFuture = new Date(YEAR,m,1) > new Date();
+      const op = isFuture?'opacity:0.35;':'';
+      return `<div class="stats-bar-row" style="${op}">
+        <div class="stats-bar-label">${MONTH_NAMES[m].slice(0,3)}</div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+          <div class="stats-bar-track" style="height:8px"><div class="stats-bar-fill" style="width:${Math.round((income/maxNet)*100)}%;background:#16a34a"></div></div>
+          <div class="stats-bar-track" style="height:8px"><div class="stats-bar-fill" style="width:${Math.round((expenses/maxNet)*100)}%;background:#dc2626"></div></div>
+        </div>
+        <div class="stats-bar-val" style="font-size:9px">${fmtK(income)}<br><span style="color:#dc2626">${fmtK(expenses)}</span></div>
+      </div>`;
+    }).join('')}
+    <div style="font-size:9px;color:var(--text-muted);margin-top:6px;display:flex;gap:12px">
+      <span>🟢 Income</span><span>🔴 Expenses</span>
+    </div>
+  </div>`;
+
+  html += `</div>`; // close two-col
+
+  // ── Top expenses & top income ───────────────────────────────
+  html += `<div class="stats-two-col">
+    <div class="stats-section">
+      <div class="stats-section-title">Top 10 Biggest Expenses (YTD)</div>
+      <div>${s.bigExpenses.slice(0,10).map(t=>`
+        <div class="top-tx-row">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:var(--text-primary)">${t.name}</span>
+          <span style="color:#dc2626;font-family:'Roboto Mono',monospace;font-weight:700;margin-left:8px;flex-shrink:0">${fmt2(t.amount)}</span>
+          <span style="color:var(--text-muted);font-size:9px;margin-left:8px;flex-shrink:0">${t.date}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="stats-section">
+      <div class="stats-section-title">Top 10 Biggest Income (YTD)</div>
+      <div>${s.bigIncome.slice(0,10).map(t=>`
+        <div class="top-tx-row">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:var(--text-primary)">${t.name}</span>
+          <span style="color:#16a34a;font-family:'Roboto Mono',monospace;font-weight:700;margin-left:8px;flex-shrink:0">${fmt2(t.amount)}</span>
+          <span style="color:var(--text-muted);font-size:9px;margin-left:8px;flex-shrink:0">${t.date}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  // ── Unpaid past transactions ────────────────────────────────
+  if(s.unpaid.length > 0) {
+    const unpaidTotal = s.unpaid.reduce((a,t)=>a+t.amount,0);
+    html += `<div class="stats-section">
+      <div class="stats-section-title" style="color:#dc2626">⚠️ Unpaid Past Transactions (${s.unpaid.length})</div>
+      <div>${s.unpaid.map(t=>`
+        <div class="top-tx-row">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:#dc2626;font-weight:600">${t.name}</span>
+          <span style="color:#dc2626;font-family:'Roboto Mono',monospace;font-weight:700;margin-left:8px;flex-shrink:0">${fmt2(t.amount)}</span>
+          <span style="color:var(--text-muted);font-size:9px;margin-left:8px;flex-shrink:0">${t.date}</span>
+        </div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:#dc2626;font-weight:700;margin-top:8px;text-align:right">
+        Total unpaid: ${fmt2(unpaidTotal)}
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+document.getElementById('btn-stats').onclick = () => {
+  document.getElementById('stats-overlay').style.display = 'block';
+  renderStats();
+};
+document.getElementById('btn-stats-close').onclick = () => {
+  document.getElementById('stats-overlay').style.display = 'none';
 };
 
 </script>
