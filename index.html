@@ -177,7 +177,9 @@ html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
 }
 html[data-theme="dark"] .tx-new-badge{background:#6d28d9}
 
-/* Import preview modal specifics */
+/* UPDATE ME bank import rows */
+.tx-row.bank-import .tx-nm span:first-child{color:#9333ea!important;font-style:italic}
+html[data-theme="dark"] .tx-row.bank-import .tx-nm span:first-child{color:#c084fc!important}
 .import-preview{max-height:260px;overflow-y:auto;margin-top:10px;border:1px solid var(--border-col);border-radius:5px}
 .import-preview-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border-col);font-size:10px;gap:8px}
 .import-preview-row:last-child{border-bottom:none}
@@ -628,12 +630,16 @@ function openModal(dk_key, txIdx) {
     setTimeout(()=>document.getElementById('mob').focus(),30); return;
   }
 
+  // Bank import hint — show original description if available
+  const bankDescHint = tx.__bankDesc ? `<p class="modal-note" style="margin-top:6px;word-break:break-word"><strong>Bank description:</strong> ${tx.__bankDesc}</p>` : '';
+
   // Build the specific date min (can't pick before start date or after year end)
   const minDate = dk_key;
   const maxDate = `${YEAR}-12-31`;
 
   root.innerHTML=`<div class="modal-ov" id="mov"><div class="modal" style="max-width:400px">
     <h3>${isNew?'Add Transaction':'Edit Transaction'} — ${dk_key}</h3>
+    ${bankDescHint}
     <label>Name</label>
     <input id="mn" value="${(tx.name||'').replace(/"/g,'&quot;')}" placeholder="e.g. PAY - Keagan">
     <label>Amount (negative = expense)</label>
@@ -842,7 +848,16 @@ function mergeImportedData(extracted) {
 function openImportModal(csvText) {
   const root = document.getElementById('modal-root');
 
-  // Parse first to show preview
+  // Auto-detect CSV type by checking headers
+  const firstLine = csvText.split(/\r?\n/)[0].toLowerCase();
+  const isBankCSV = firstLine.includes('credit or debit') || firstLine.includes('processed date');
+
+  if (isBankCSV) {
+    openBankImportModal(csvText);
+    return;
+  }
+
+  // Otherwise treat as spreadsheet CSV
   let extracted;
   try {
     extracted = extractTransactionsFromCSV(csvText);
@@ -906,6 +921,135 @@ function openImportModal(csvText) {
   }
 }
 
+// ── BANK CSV IMPORTER ─────────────────────────────────────────
+// Format: Account Name, Processed Date, Description, Check Number, Credit or Debit, Amount
+// Debit = expense (negative), Credit = income (positive)
+// Name defaults to "UPDATE ME" so user can clean up later
+
+function parseBankCSV(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+
+  // Find column indices from header row
+  const headers = rows[0].map(h => h.toLowerCase().replace(/"/g,'').trim());
+  const colDate  = headers.findIndex(h => h.includes('processed date') || h.includes('date'));
+  const colDesc  = headers.findIndex(h => h.includes('description'));
+  const colType  = headers.findIndex(h => h.includes('credit or debit') || h.includes('type'));
+  const colAmt   = headers.findIndex(h => h === 'amount' || h.includes('amount'));
+
+  if (colDate === -1 || colAmt === -1) return [];
+
+  const results = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length < 2) continue;
+
+    const rawDate = (row[colDate]||'').replace(/"/g,'').trim();
+    // Accept YYYY-MM-DD
+    const dateMatch = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!dateMatch) continue;
+    const dateKey = rawDate; // already YYYY-MM-DD
+    if (!dateKey.startsWith(String(YEAR))) continue;
+
+    const rawAmt = parseAmount(row[colAmt]);
+    if (rawAmt === null || rawAmt === 0) continue;
+
+    const typeRaw = (row[colType]||'').replace(/"/g,'').trim().toLowerCase();
+    const isDebit = typeRaw === 'debit';
+    const amount = isDebit ? -Math.abs(rawAmt) : Math.abs(rawAmt);
+
+    // Store original bank description as a note, name = UPDATE ME
+    const desc = colDesc >= 0 ? (row[colDesc]||'').replace(/"/g,'').trim() : '';
+
+    results.push({ dateKey, amount, desc });
+  }
+  return results;
+}
+
+function openBankImportModal(csvText) {
+  const root = document.getElementById('modal-root');
+  let bankRows;
+  try {
+    bankRows = parseBankCSV(csvText);
+  } catch(e) {
+    alert('Could not parse bank CSV.');
+    return;
+  }
+
+  if (!bankRows.length) {
+    alert('No valid transactions found in this CSV for ' + YEAR + '.');
+    return;
+  }
+
+  // Figure out which are new (match by date + amount — bank tx won't have names yet)
+  const preview = [];
+  bankRows.forEach(row => {
+    const d = getDay(row.dateKey);
+    // Check if an "UPDATE ME" with the same amount already exists (avoid re-importing)
+    const exists = d.transactions.some(t =>
+      t.__bankImport && Math.abs((t.amount||0) - row.amount) < 0.01
+    );
+    if (!exists) preview.push(row);
+  });
+
+  root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:500px;width:95%">
+    <h3>🏦 Bank Import Preview</h3>
+    <div class="import-summary">
+      Found <strong>${bankRows.length} bank transactions</strong> in this file<br>
+      <strong style="color:#7c3aed">${preview.length} new</strong> will be added as <strong>"UPDATE ME"</strong> &nbsp;·&nbsp;
+      <span style="color:var(--text-muted)">${bankRows.length - preview.length} already imported (skipped)</span><br>
+      <span style="color:var(--text-muted);font-size:10px">Original bank descriptions are saved as notes — click any transaction to rename it.</span>
+    </div>
+    ${preview.length > 0 ? `
+    <div class="import-preview">
+      ${preview.slice(0,80).map(row=>`
+        <div class="import-preview-row">
+          <span class="import-preview-date">${row.dateKey}</span>
+          <span class="import-preview-name" style="color:var(--text-muted);font-style:italic">UPDATE ME</span>
+          <span class="import-preview-amt ${row.amount<0?'neg':'pos'}">${fmtM(row.amount)}</span>
+        </div>`).join('')}
+      ${preview.length > 80 ? `<div class="import-preview-row" style="color:var(--text-muted);font-style:italic">...and ${preview.length-80} more</div>` : ''}
+    </div>` : `<p style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing new — all transactions from this file already exist.</p>`}
+    <div class="mbtns">
+      <button id="mcancel">Cancel</button>
+      ${preview.length > 0 ? '<button class="mbsave" id="mbankimport">Import ' + preview.length + ' Transactions</button>' : ''}
+    </div>
+  </div></div>`;
+
+  document.getElementById('mcancel').onclick = () => root.innerHTML = '';
+  document.getElementById('mov').onclick = e => { if(e.target.id==='mov') root.innerHTML=''; };
+
+  if (preview.length > 0) {
+    document.getElementById('mbankimport').onclick = () => {
+      const now = Date.now();
+      let addedCount = 0;
+      preview.forEach(row => {
+        const d = getDay(row.dateKey);
+        // Double-check not already there
+        const exists = d.transactions.some(t =>
+          t.__bankImport && Math.abs((t.amount||0) - row.amount) < 0.01
+        );
+        if (!exists) {
+          d.transactions.push({
+            name: 'UPDATE ME',
+            amount: row.amount,
+            paid: false,
+            category: row.amount > 0 ? 'OTHER' : 'OTHER',
+            __bankImport: true,       // flag for dupe detection
+            __bankDesc: row.desc,     // original bank description stored here
+            __importedAt: now         // for NEW badge
+          });
+          addedCount++;
+        }
+      });
+      scheduleSave();
+      root.innerHTML = '';
+      renderAll();
+      setSyncStatus('synced', `✓ Bank import: ${addedCount} transactions added`);
+    };
+  }
+}
+
 // ── RENDER ───────────────────────────────────────────────────
 function renderDayCol(day, m, balMap, isBlank) {
   const key=dk(day); const inMonth=day.getMonth()===m&&day.getFullYear()===YEAR;
@@ -929,7 +1073,7 @@ function renderDayCol(day, m, balMap, isBlank) {
       if(isOpening) paidClass='opening-bal';
       else if(tx.paid) paidClass=past?'paid-past':'paid-future';
       else if(past) paidClass='unpaid-past';
-      row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}`;
+      row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
       // Show NEW badge if imported within the last 7 days
       const isNew = tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
       const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
