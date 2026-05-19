@@ -9,6 +9,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Roboto',sans-serif;font-size:12px;background:var(--bg-page);color:var(--text-primary);min-height:100vh;transition:background 0.2s,color 0.2s}
 
+/* Centered page wrapper — all content constrained to 1200px max, centered */
+.page-wrap{max-width:1200px;margin:0 auto;width:100%}
+.app-header .page-wrap{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
 html[data-theme="light"]{
   --bg-page:#f0f2f8;--bg-card:#fff;--bg-card2:#f8f9fc;--bg-col-hdr:#f8f9fc;
   --bg-past-hdr:#e4e4ec;--bg-past-col:#f5f5f8;--bg-past-colhdr:#ececf2;
@@ -28,8 +32,9 @@ html[data-theme="dark"]{
   --unpaid-past-bg:#2a0e0e;--unpaid-past-border:#ef4444;--unpaid-past-nm:#fca5a5;--unpaid-past-amt:#f87171;
 }
 
-.app-header{background:#1e2a4a;padding:8px 14px;border-bottom:2px solid #2d3f6e;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:10px}
+.app-header{background:#1e2a4a;border-bottom:2px solid #2d3f6e;position:sticky;top:0;z-index:200}
 html[data-theme="dark"] .app-header{background:#0d1525;border-bottom-color:#1a2a4a}
+.app-header .page-wrap{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .app-header h1{font-size:14px;font-weight:700;color:#e8efff;letter-spacing:0.3px;white-space:nowrap}
 .hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .hbtn{background:#2d3f6e;border:1px solid #3d5090;color:#c8d8ff;padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:'Roboto',sans-serif;font-weight:500;white-space:nowrap}
@@ -55,8 +60,9 @@ html[data-theme="dark"] .app-header{background:#0d1525;border-bottom-color:#1a2a
 .google-btn svg{width:18px;height:18px;flex-shrink:0}
 
 /* Sync status */
-.sync-bar{background:#1a2a3a;padding:3px 14px;display:flex;align-items:center;justify-content:space-between;font-size:10px;min-height:22px}
+.sync-bar{background:#1a2a3a;border-bottom:1px solid #1e3a4a}
 html[data-theme="dark"] .sync-bar{background:#080c14}
+.sync-bar .page-wrap{padding:3px 14px;display:flex;align-items:center;justify-content:space-between;font-size:10px;min-height:22px}
 .sync-status{display:flex;align-items:center;gap:6px;color:#7a9abb}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0;transition:background 0.3s}
 .sync-dot.synced{background:#4ade80}
@@ -65,7 +71,8 @@ html[data-theme="dark"] .sync-bar{background:#080c14}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .sync-user{color:#4a6a8a;font-size:10px}
 
-.months-container{padding:8px}
+.months-container{padding:8px 0}
+.months-container .page-wrap{padding:0 8px}
 .month-block{margin-bottom:8px;border-radius:8px;overflow:hidden;border:2px solid transparent;box-shadow:var(--shadow)}
 
 .m0{--mc:#e8f5e9;--mb:#4caf50;--mt:#1b5e20;--ml:#f1faf1;--mh:#2e7d32}
@@ -111,8 +118,8 @@ html[data-theme="dark"] .m11{--mc:#162226;--ml:#0f1a1f;--mt:#7dd3fc}
 
 .week-block{border-bottom:1px solid var(--mb)}.week-block:last-child{border-bottom:none}
 
-.day-grid{display:grid;grid-template-columns:repeat(7,1fr)}
-.day-col{border-right:1px solid var(--border-main);display:flex;flex-direction:column;background:var(--bg-card)}.day-col:last-of-type{border-right:none}
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);min-width:0}
+.day-col{border-right:1px solid var(--border-main);display:flex;flex-direction:column;background:var(--bg-card);min-width:0}.day-col:last-of-type{border-right:none}
 .day-hdr{padding:4px 5px;text-align:center;border-bottom:1px solid var(--border-main);background:var(--mc)}
 .dname{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mt);opacity:0.6;font-weight:500}
 .ddate{font-size:13px;font-weight:700;color:var(--mt)}
@@ -230,23 +237,29 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
 <!-- Main App -->
 <div id="app">
   <div class="app-header">
-    <h1>💰 Rowles Financial Planner 2026</h1>
-    <div class="hdr-right">
-      <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
-      <span class="tr-val warn" id="yearlow-hdr">—</span>
-      <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
-      <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
-      <button class="hbtn danger" id="btn-signout">Sign Out</button>
+    <div class="page-wrap">
+      <h1>💰 Rowles Financial Planner 2026</h1>
+      <div class="hdr-right">
+        <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
+        <span class="tr-val warn" id="yearlow-hdr">—</span>
+        <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
+        <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
+        <button class="hbtn danger" id="btn-signout">Sign Out</button>
+      </div>
     </div>
   </div>
   <div class="sync-bar">
-    <div class="sync-status">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-text">Connecting...</span>
+    <div class="page-wrap">
+      <div class="sync-status">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-text">Connecting...</span>
+      </div>
+      <span class="sync-user" id="sync-user"></span>
     </div>
-    <span class="sync-user" id="sync-user"></span>
   </div>
-  <div id="months-container" class="months-container"></div>
+  <div id="months-container" class="months-container">
+    <div class="page-wrap" id="months-inner"></div>
+  </div>
 </div>
 
 <div id="modal-root"></div>
@@ -412,9 +425,8 @@ async function loadFromFirebase() {
           el.textContent = upcoming !== null ? fmtM(upcoming) : '—';
           el.className = 'tr-val ' + (upcoming !== null && upcoming < 500 ? 'neg' : upcoming !== null && upcoming < 1000 ? 'warn' : 'pos');
         }
-        const container = document.getElementById('months-container');
-        container.innerHTML = '';
-        for (let m=0; m<12; m++) container.appendChild(renderMonth(m, balMap));
+        const container = document.getElementById('months-inner');
+        if (container) { container.innerHTML = ''; for (let m=0; m<12; m++) container.appendChild(renderMonth(m, balMap)); }
         setSyncStatus('synced', '✓ Synced · updated by ' + (d.lastEditedBy||'').split('@')[0]);
       }
     }
@@ -789,7 +801,8 @@ function renderAll() {
     el.className = 'tr-val ' + (upcoming !== null && upcoming < 500 ? 'neg' : upcoming !== null && upcoming < 1000 ? 'warn' : 'pos');
   }
   if (lbl) lbl.textContent = 'Upcoming Low:';
-  const container = document.getElementById('months-container');
+  const container = document.getElementById('months-inner');
+  if (!container) return;
   container.innerHTML = '';
   for (let m=0; m<12; m++) container.appendChild(renderMonth(m, balMap));
   if (firstRender) {
