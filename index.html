@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v20 -->
+<!-- RFP-BUILD-v21 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -166,7 +166,7 @@ html[data-theme="dark"] .tx-row.opening-bal .tx-nm{color:#fbbf24!important}
 .tx-row.opening-bal .tx-amt{color:#92400e!important;font-weight:700}
 html[data-theme="dark"] .tx-row.opening-bal .tx-amt{color:#fbbf24!important}
 
-.tx-nm{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500}
+.tx-nm{font-size:10px;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500;display:flex;align-items:center;gap:3px;min-width:0}.tx-nm-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tx-nm:hover{background:rgba(0,0,0,0.05)}
 html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
 
@@ -217,7 +217,8 @@ html[data-theme="dark"] .bal-val.alert-low{background:#7f1d1d;color:#fecaca!impo
 
 .cp-pay{background:#f0fdf4}.cp-gas{background:#f0fdf4}.cp-sub{background:#eff6ff}.cp-ins{background:#fffbeb}
 .cp-loan{background:#faf5ff}.cp-cc{background:#f5f3ff}.cp-util{background:#f0fdfa}.cp-rent{background:#fff1f2}
-.cp-medical{background:#fff7ed}.cp-food{background:#f7fee7}.cp-other{background:#fafafa}
+.cp-medical{background:#fff7ed}.cp-food{background:#f7fee7}.cp-other{background:#fafafa}.cp-auto{background:#ecfeff;border-left:3px solid #0891b2}
+.cp-auto .tx-nm{color:#0e7490;font-style:italic}
 .cp-pay .tx-nm{color:#166534}.cp-gas .tx-nm{color:#166534}.cp-sub .tx-nm{color:#1e40af}.cp-ins .tx-nm{color:#92400e}
 .cp-loan .tx-nm{color:#6b21a8}.cp-cc .tx-nm{color:#4c1d95}.cp-util .tx-nm{color:#134e4a}.cp-rent .tx-nm{color:#9f1239}
 .cp-medical .tx-nm{color:#9a3412}.cp-food .tx-nm{color:#3f6212}.cp-other .tx-nm{color:#374151}
@@ -227,6 +228,8 @@ html[data-theme="dark"] .cp-loan{background:#1e0e2a}html[data-theme="dark"] .cp-
 html[data-theme="dark"] .cp-util{background:#0c1c1c}html[data-theme="dark"] .cp-rent{background:#2a0e0e}
 html[data-theme="dark"] .cp-medical{background:#2a1408}html[data-theme="dark"] .cp-food{background:#121c0e}
 html[data-theme="dark"] .cp-other{background:#161616}
+html[data-theme="dark"] .cp-auto{background:#061e24;border-left:3px solid #0891b2}
+html[data-theme="dark"] .cp-auto .tx-nm{color:#22d3ee;font-style:italic}
 html[data-theme="dark"] .cp-pay .tx-nm{color:#86efac}html[data-theme="dark"] .cp-gas .tx-nm{color:#86efac}
 html[data-theme="dark"] .cp-sub .tx-nm{color:#7ab3ff}html[data-theme="dark"] .cp-ins .tx-nm{color:#ffb347}
 html[data-theme="dark"] .cp-loan .tx-nm{color:#d17ae0}html[data-theme="dark"] .cp-cc .tx-nm{color:#a78bfa}
@@ -1128,10 +1131,11 @@ function renderDayCol(day, m, balMap, isBlank) {
       if(isOpening) paidClass='opening-bal';
       else if(tx.paid) paidClass=past?'paid-past':'paid-future';
       else if(past) paidClass='unpaid-past';
-      row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
-      const isNew = tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
+      const isAutoPay = !isOpening && (tx.name||'').startsWith('[');
+      row.className=`tx-row ${isOpening?'':isAutoPay?'cp-auto':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
+      const isNew = tx.__bankImport && tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
       const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
-      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}">${tx.name||''}${newBadge}</span><span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span><span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
+      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}"><span class="tx-nm-text">${tx.name||''}</span>${newBadge}</span><span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span><span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
       row.querySelector('.tx-nm').onclick=()=>openModal(key,ti);
       if(!isOpening){ row.querySelector('input').onchange=e=>{tx.paid=e.target.checked; scheduleSave(); renderAll();}; }
       else { row.querySelector('.tx-chk span').onclick=()=>openModal(key,ti); }
