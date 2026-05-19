@@ -1214,13 +1214,16 @@ function renderDayCol(day, m, balMap, isBlank) {
   const ch=document.createElement('div'); ch.className='col-hdr-row';
   ch.innerHTML='<span></span><span>Name</span><span style="text-align:right">Amt</span><span></span>';
   const txl=document.createElement('div'); txl.className='tx-list';
+
+  // Wire drop zone on ALL valid in-month days (including empty ones) — not blanks
   if(!isBlank&&inMonth){
-    // Wire drop zone onto the tx-list
     txl.addEventListener('dragover', e => handleDragOver(e, key));
     txl.addEventListener('dragenter', e => handleDragEnter(e, txl, key));
     txl.addEventListener('dragleave', e => handleDragLeave(e, txl));
     txl.addEventListener('drop', e => handleDrop(e, key));
+  }
 
+  if(!isBlank&&inMonth){
     (d.transactions||[]).forEach((tx,ti)=>{
       const isOpening=tx.__opening===true;
       const cat=isOpening?'OTHER':(tx.category||detectCat(tx.name));
@@ -1232,14 +1235,11 @@ function renderDayCol(day, m, balMap, isBlank) {
       row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
       const isNew = tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
       const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
-
-      // Opening balance is not draggable
       if (!isOpening) {
         row.draggable = true;
         row.addEventListener('dragstart', e => handleDragStart(e, key, ti));
         row.addEventListener('dragend', handleDragEnd);
       }
-
       row.innerHTML=`<span class="drag-handle"${isOpening?' style="visibility:hidden"':''}">⠿</span><span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:2px;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.name||''}</span>${newBadge}</span>
         <span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span>
         <span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
