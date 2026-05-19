@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v15 -->
+<!-- RFP-BUILD-v17 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -166,7 +166,7 @@ html[data-theme="dark"] .tx-row.opening-bal .tx-nm{color:#fbbf24!important}
 .tx-row.opening-bal .tx-amt{color:#92400e!important;font-weight:700}
 html[data-theme="dark"] .tx-row.opening-bal .tx-amt{color:#fbbf24!important}
 
-.tx-nm{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500}
+.tx-nm{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500;display:flex;align-items:center;gap:3px}
 .tx-nm:hover{background:rgba(0,0,0,0.05)}
 html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
 
@@ -1129,7 +1129,7 @@ function renderDayCol(day, m, balMap, isBlank) {
       row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
       const isNew = tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
       const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
-      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:2px;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.name||''}</span>${newBadge}</span>
+      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}"><span style="overflow:hidden;text-overflow:ellipsis;flex:1">${tx.name||''}</span>${newBadge}</span>
         <span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span>
         <span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
       row.querySelector('.tx-nm').onclick=()=>openModal(key,ti);
