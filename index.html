@@ -177,16 +177,8 @@ html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
 }
 html[data-theme="dark"] .tx-new-badge{background:#6d28d9}
 
-/* Drag and drop */
 .tx-row{cursor:default}
-.tx-row[draggable="true"]{cursor:grab}
-.tx-row[draggable="true"]:active{cursor:grabbing}
-.tx-row.dragging{opacity:0.35;background:var(--tx-hover)!important;border:1px dashed var(--border-modal)!important}
-.tx-list.drag-over{background:rgba(124,58,237,0.07)!important;outline:2px dashed #7c3aed;outline-offset:-2px;border-radius:2px}
-html[data-theme="dark"] .tx-list.drag-over{background:rgba(124,58,237,0.12)!important}
-.drag-handle{color:var(--text-muted);font-size:10px;cursor:grab;padding:0 2px;opacity:0.4;flex-shrink:0;user-select:none}
-.drag-handle:hover{opacity:0.8}
-.tx-row.bank-import .tx-nm span:first-child{color:#9333ea!important;font-style:italic}
+html[data-theme="dark"] .tx-row.bank-import .tx-nm span:first-child{color:#9333ea!important;font-style:italic}
 html[data-theme="dark"] .tx-row.bank-import .tx-nm span:first-child{color:#c084fc!important}
 .import-preview{max-height:260px;overflow-y:auto;margin-top:10px;border:1px solid var(--border-col);border-radius:5px}
 .import-preview-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border-col);font-size:10px;gap:8px}
@@ -215,6 +207,10 @@ html[data-theme="dark"] .tx-amt.pos{color:#4ade80}
 .day-bal-row{padding:3px 5px;border-top:1px solid var(--border-col);display:flex;justify-content:space-between;background:var(--bal-row-bg)}
 .bal-lbl{font-size:9px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
 .bal-val{font-size:10px;font-weight:700;font-family:'Roboto Mono',monospace}
+/* Low balance alert — $500 or under */
+.bal-val.alert-low{color:#fff!important;background:#dc2626;border-radius:3px;padding:1px 5px;animation:balPulse 1.5s ease-in-out infinite}
+html[data-theme="dark"] .bal-val.alert-low{background:#7f1d1d;color:#fecaca!important}
+@keyframes balPulse{0%,100%{opacity:1}50%{opacity:0.65}}
 
 .cp-pay{background:#f0fdf4}.cp-gas{background:#f0fdf4}.cp-sub{background:#eff6ff}.cp-ins{background:#fffbeb}
 .cp-loan{background:#faf5ff}.cp-cc{background:#f5f3ff}.cp-util{background:#f0fdfa}.cp-rent{background:#fff1f2}
@@ -497,9 +493,14 @@ function buildBalanceMap() {
   const map = {}; let running = 0;
   const cur = new Date(YEAR,0,1); const end = new Date(YEAR,11,31);
   while (cur <= end) {
-    const key = dk(cur); const d = getDay(key);
-    (d.transactions||[]).forEach(tx => { running += tx.amount||0; });
-    map[key] = running; cur.setDate(cur.getDate()+1);
+    const key = dk(cur);
+    // Read directly from data without creating missing entries via getDay
+    const d = data[key];
+    if (d && d.transactions) {
+      d.transactions.forEach(tx => { running += tx.amount||0; });
+    }
+    map[key] = running;
+    cur.setDate(cur.getDate()+1);
   }
   return map;
 }
@@ -576,109 +577,6 @@ function buildMonthRows(m) {
 }
 function wMinClass(v) { if (v===null) return ''; if (v>=1000) return 'wmin-green'; if (v>=500) return 'wmin-yellow'; return 'wmin-red'; }
 
-// ── DRAG STATE ────────────────────────────────────────────────
-let dragState = null; // { fromKey, txIndex, tx }
-
-function handleDragStart(e, fromKey, txIndex) {
-  const tx = getDay(fromKey).transactions[txIndex];
-  if (!tx) return;
-  dragState = { fromKey, txIndex, txRef: tx }; // store reference to the actual object
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', fromKey + '|' + txIndex);
-  setTimeout(() => { if (e.target) e.target.classList.add('dragging'); }, 0);
-}
-
-function handleDragEnd(e) {
-  if (e.target) e.target.classList.remove('dragging');
-  // Clear all drag-over highlights
-  document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
-  dragState = null;
-}
-
-function handleDragOver(e, toKey) {
-  if (!dragState || dragState.fromKey === toKey) return;
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-}
-
-function handleDragEnter(e, txListEl, toKey) {
-  if (!dragState || dragState.fromKey === toKey) return;
-  document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
-  txListEl.classList.add('drag-over');
-}
-
-function handleDragLeave(e, txListEl) {
-  // Only remove if leaving the tx-list entirely (not just entering a child)
-  if (!txListEl.contains(e.relatedTarget)) {
-    txListEl.classList.remove('drag-over');
-  }
-}
-
-function handleDrop(e, toKey) {
-  e.preventDefault();
-  document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
-  if (!dragState) return;
-  const { fromKey, txRef } = dragState;
-  if (fromKey === toKey) { dragState = null; return; }
-
-  const fromDay = getDay(fromKey);
-  const toDay = getDay(toKey);
-
-  // Find the transaction by reference (identity) — immune to index shifts
-  const idx = fromDay.transactions.indexOf(txRef);
-  if (idx === -1 || txRef.__opening) { dragState = null; return; }
-
-  // Clone the tx before splicing so we have a clean copy for the destination
-  const txCopy = {...txRef};
-
-  // Remove from source
-  fromDay.transactions.splice(idx, 1);
-
-  // Add to destination — if destination day was empty/new, getDay already initialised it
-  toDay.transactions.push(txCopy);
-
-  dragState = null;
-
-  // Rebuild balance map from scratch and re-render fully
-  scheduleSave();
-
-  // Use setTimeout to ensure data mutations are fully committed before re-render
-  setTimeout(() => renderAll(), 0);
-}
-// Given a start date key, repeat type, and tx object, stamp it onto all matching days
-function applyRepeat(startKey, repeatType, specificDate, tx) {
-  const startDate = new Date(startKey);
-  const end = new Date(YEAR, 11, 31);
-  const txEntry = {name:tx.name, amount:tx.amount, paid:tx.paid, category:tx.category};
-
-  if (repeatType === 'specific') {
-    // Just one specific date
-    const d = getDay(specificDate);
-    const exists = d.transactions.some(t=>t.name===tx.name&&t.amount===tx.amount);
-    if (!exists) d.transactions.push({...txEntry});
-    return;
-  }
-
-  const cur = new Date(startDate);
-  while (cur <= end) {
-    const key = dk(cur);
-    // Skip the origin day — it's already being added by the normal save path
-    if (key !== startKey) {
-      const d = getDay(key);
-      const exists = d.transactions.some(t=>t.name===tx.name&&t.amount===tx.amount);
-      if (!exists) d.transactions.push({...txEntry});
-    }
-    if (repeatType === 'daily') {
-      cur.setDate(cur.getDate() + 1);
-    } else if (repeatType === 'weekly') {
-      cur.setDate(cur.getDate() + 7);
-    } else if (repeatType === 'monthly') {
-      cur.setMonth(cur.getMonth() + 1);
-    } else {
-      break;
-    }
-  }
-}
 
 // ── MODALS ───────────────────────────────────────────────────
 function openModal(dk_key, txIdx) {
@@ -1212,16 +1110,11 @@ function renderDayCol(day, m, balMap, isBlank) {
   hdr.className=`day-hdr${past&&!isBlank?' past':''}${tod?' today':''}`;
   hdr.innerHTML=`<div class="dname">${DAYS_FULL[di].slice(0,3)}</div><div class="ddate">${inMonth||isBlank?fmt(day):'—'}</div>`;
   const ch=document.createElement('div'); ch.className='col-hdr-row';
-  ch.innerHTML='<span></span><span>Name</span><span style="text-align:right">Amt</span><span></span>';
+  ch.innerHTML='<span>Name</span><span style="text-align:right">Amt</span><span></span>';
   const txl=document.createElement('div'); txl.className='tx-list';
 
   // Wire drop zone on ALL valid in-month days (including empty ones) — not blanks
-  if(!isBlank&&inMonth){
-    txl.addEventListener('dragover', e => handleDragOver(e, key));
-    txl.addEventListener('dragenter', e => handleDragEnter(e, txl, key));
-    txl.addEventListener('dragleave', e => handleDragLeave(e, txl));
-    txl.addEventListener('drop', e => handleDrop(e, key));
-  }
+  if(!isBlank&&inMonth){  }
 
   if(!isBlank&&inMonth){
     (d.transactions||[]).forEach((tx,ti)=>{
@@ -1235,12 +1128,7 @@ function renderDayCol(day, m, balMap, isBlank) {
       row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
       const isNew = tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
       const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
-      if (!isOpening) {
-        row.draggable = true;
-        row.addEventListener('dragstart', e => handleDragStart(e, key, ti));
-        row.addEventListener('dragend', handleDragEnd);
-      }
-      row.innerHTML=`<span class="drag-handle"${isOpening?' style="visibility:hidden"':''}">⠿</span><span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:2px;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.name||''}</span>${newBadge}</span>
+      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'')​.replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:2px;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.name||''}</span>${newBadge}</span>
         <span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span>
         <span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
       row.querySelector('.tx-nm').onclick=()=>openModal(key,ti);
@@ -1254,7 +1142,8 @@ function renderDayCol(day, m, balMap, isBlank) {
   const br=document.createElement('div'); br.className='day-bal-row';
   if(!isBlank&&inMonth){
     const bc=endBal!==null?(endBal>=0?'pos':'neg'):'';
-    br.innerHTML=`<span class="bal-lbl">Balance</span><span class="bal-val ${bc}">${fmtM(endBal)}</span>`;
+    const alertCls=endBal!==null&&endBal<=500?' alert-low':'';
+    br.innerHTML=`<span class="bal-lbl">Balance</span><span class="bal-val ${bc}${alertCls}">${fmtM(endBal)}</span>`;
   } else {
     br.innerHTML='<span class="bal-lbl">Balance</span><span class="bal-val" style="color:var(--text-blank)">—</span>';
   }
