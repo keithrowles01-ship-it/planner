@@ -580,10 +580,11 @@ function wMinClass(v) { if (v===null) return ''; if (v>=1000) return 'wmin-green
 let dragState = null; // { fromKey, txIndex, tx }
 
 function handleDragStart(e, fromKey, txIndex) {
-  dragState = { fromKey, txIndex };
+  const tx = getDay(fromKey).transactions[txIndex];
+  if (!tx) return;
+  dragState = { fromKey, txIndex, txRef: tx }; // store reference to the actual object
   e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', JSON.stringify({ fromKey, txIndex }));
-  // Add dragging class after a tiny delay so it shows before ghost renders
+  e.dataTransfer.setData('text/plain', fromKey + '|' + txIndex);
   setTimeout(() => { if (e.target) e.target.classList.add('dragging'); }, 0);
 }
 
@@ -617,17 +618,19 @@ function handleDrop(e, toKey) {
   e.preventDefault();
   document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
   if (!dragState) return;
-  const { fromKey, txIndex } = dragState;
+  const { fromKey, txRef } = dragState;
   if (fromKey === toKey) return;
 
   const fromDay = getDay(fromKey);
   const toDay = getDay(toKey);
-  const tx = fromDay.transactions[txIndex];
-  if (!tx || tx.__opening) return; // never move the opening balance
+
+  // Find the transaction by reference (identity) — immune to index shifts
+  const idx = fromDay.transactions.indexOf(txRef);
+  if (idx === -1 || txRef.__opening) return;
 
   // Move: remove from source, add to destination
-  fromDay.transactions.splice(txIndex, 1);
-  toDay.transactions.push({...tx});
+  fromDay.transactions.splice(idx, 1);
+  toDay.transactions.push({...txRef});
 
   dragState = null;
   scheduleSave();
