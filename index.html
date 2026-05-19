@@ -144,9 +144,9 @@ html[data-theme="dark"] .day-hdr.today .ddate{color:var(--mt)}
 .day-col.blank-day .bal-lbl,.day-col.blank-day .bal-val{color:var(--text-blank);cursor:default}
 .day-col.blank-day .add-row{display:none}
 
-.col-hdr-row{display:grid;grid-template-columns:1fr 58px 16px;padding:2px 3px;background:var(--bg-col-hdr);font-size:9px;color:var(--text-muted);border-bottom:1px solid var(--border-col);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.col-hdr-row{display:grid;grid-template-columns:10px 1fr 58px 16px;padding:2px 3px;background:var(--bg-col-hdr);font-size:9px;color:var(--text-muted);border-bottom:1px solid var(--border-col);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
 .tx-list{flex:1}
-.tx-row{display:grid;grid-template-columns:1fr 58px 16px;padding:2px 3px;border-bottom:1px solid var(--border-col);align-items:center;min-height:20px}
+.tx-row{display:grid;grid-template-columns:10px 1fr 58px 16px;padding:2px 3px;border-bottom:1px solid var(--border-col);align-items:center;min-height:20px}
 .tx-row:hover{background:var(--tx-hover)}
 .tx-row.paid-past{opacity:0.4;background:#f0f0f4!important}
 html[data-theme="dark"] .tx-row.paid-past{background:#111118!important}
@@ -177,7 +177,15 @@ html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
 }
 html[data-theme="dark"] .tx-new-badge{background:#6d28d9}
 
-/* UPDATE ME bank import rows */
+/* Drag and drop */
+.tx-row{cursor:default}
+.tx-row[draggable="true"]{cursor:grab}
+.tx-row[draggable="true"]:active{cursor:grabbing}
+.tx-row.dragging{opacity:0.35;background:var(--tx-hover)!important;border:1px dashed var(--border-modal)!important}
+.tx-list.drag-over{background:rgba(124,58,237,0.07)!important;outline:2px dashed #7c3aed;outline-offset:-2px;border-radius:2px}
+html[data-theme="dark"] .tx-list.drag-over{background:rgba(124,58,237,0.12)!important}
+.drag-handle{color:var(--text-muted);font-size:10px;cursor:grab;padding:0 2px;opacity:0.4;flex-shrink:0;user-select:none}
+.drag-handle:hover{opacity:0.8}
 .tx-row.bank-import .tx-nm span:first-child{color:#9333ea!important;font-style:italic}
 html[data-theme="dark"] .tx-row.bank-import .tx-nm span:first-child{color:#c084fc!important}
 .import-preview{max-height:260px;overflow-y:auto;margin-top:10px;border:1px solid var(--border-col);border-radius:5px}
@@ -568,7 +576,63 @@ function buildMonthRows(m) {
 }
 function wMinClass(v) { if (v===null) return ''; if (v>=1000) return 'wmin-green'; if (v>=500) return 'wmin-yellow'; return 'wmin-red'; }
 
-// ── REPEAT HELPERS ────────────────────────────────────────────
+// ── DRAG STATE ────────────────────────────────────────────────
+let dragState = null; // { fromKey, txIndex, tx }
+
+function handleDragStart(e, fromKey, txIndex) {
+  dragState = { fromKey, txIndex };
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', JSON.stringify({ fromKey, txIndex }));
+  // Add dragging class after a tiny delay so it shows before ghost renders
+  setTimeout(() => { if (e.target) e.target.classList.add('dragging'); }, 0);
+}
+
+function handleDragEnd(e) {
+  if (e.target) e.target.classList.remove('dragging');
+  // Clear all drag-over highlights
+  document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
+  dragState = null;
+}
+
+function handleDragOver(e, toKey) {
+  if (!dragState || dragState.fromKey === toKey) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e, txListEl, toKey) {
+  if (!dragState || dragState.fromKey === toKey) return;
+  document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
+  txListEl.classList.add('drag-over');
+}
+
+function handleDragLeave(e, txListEl) {
+  // Only remove if leaving the tx-list entirely (not just entering a child)
+  if (!txListEl.contains(e.relatedTarget)) {
+    txListEl.classList.remove('drag-over');
+  }
+}
+
+function handleDrop(e, toKey) {
+  e.preventDefault();
+  document.querySelectorAll('.tx-list.drag-over').forEach(el => el.classList.remove('drag-over'));
+  if (!dragState) return;
+  const { fromKey, txIndex } = dragState;
+  if (fromKey === toKey) return;
+
+  const fromDay = getDay(fromKey);
+  const toDay = getDay(toKey);
+  const tx = fromDay.transactions[txIndex];
+  if (!tx || tx.__opening) return; // never move the opening balance
+
+  // Move: remove from source, add to destination
+  fromDay.transactions.splice(txIndex, 1);
+  toDay.transactions.push({...tx});
+
+  dragState = null;
+  scheduleSave();
+  renderAll();
+}
 // Given a start date key, repeat type, and tx object, stamp it onto all matching days
 function applyRepeat(startKey, repeatType, specificDate, tx) {
   const startDate = new Date(startKey);
@@ -1136,9 +1200,15 @@ function renderDayCol(day, m, balMap, isBlank) {
   hdr.className=`day-hdr${past&&!isBlank?' past':''}${tod?' today':''}`;
   hdr.innerHTML=`<div class="dname">${DAYS_FULL[di].slice(0,3)}</div><div class="ddate">${inMonth||isBlank?fmt(day):'—'}</div>`;
   const ch=document.createElement('div'); ch.className='col-hdr-row';
-  ch.innerHTML='<span>Name</span><span style="text-align:right">Amt</span><span></span>';
+  ch.innerHTML='<span></span><span>Name</span><span style="text-align:right">Amt</span><span></span>';
   const txl=document.createElement('div'); txl.className='tx-list';
   if(!isBlank&&inMonth){
+    // Wire drop zone onto the tx-list
+    txl.addEventListener('dragover', e => handleDragOver(e, key));
+    txl.addEventListener('dragenter', e => handleDragEnter(e, txl, key));
+    txl.addEventListener('dragleave', e => handleDragLeave(e, txl));
+    txl.addEventListener('drop', e => handleDrop(e, key));
+
     (d.transactions||[]).forEach((tx,ti)=>{
       const isOpening=tx.__opening===true;
       const cat=isOpening?'OTHER':(tx.category||detectCat(tx.name));
@@ -1148,10 +1218,17 @@ function renderDayCol(day, m, balMap, isBlank) {
       else if(tx.paid) paidClass=past?'paid-past':'paid-future';
       else if(past) paidClass='unpaid-past';
       row.className=`tx-row ${isOpening?'':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
-      // Show NEW badge if imported within the last 7 days
       const isNew = tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
       const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
-      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:2px;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.name||''}</span>${newBadge}</span>
+
+      // Opening balance is not draggable
+      if (!isOpening) {
+        row.draggable = true;
+        row.addEventListener('dragstart', e => handleDragStart(e, key, ti));
+        row.addEventListener('dragend', handleDragEnd);
+      }
+
+      row.innerHTML=`<span class="drag-handle"${isOpening?' style="visibility:hidden"':''}">⠿</span><span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:2px;min-width:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tx.name||''}</span>${newBadge}</span>
         <span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span>
         <span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
       row.querySelector('.tx-nm').onclick=()=>openModal(key,ti);
@@ -1321,9 +1398,13 @@ document.getElementById('csv-file-input').onchange = (e) => {
   reader.readAsText(file);
 };
 
-// Also support drag-and-drop onto the whole page
-document.body.addEventListener('dragover', e => { e.preventDefault(); });
+// Page-level drag-and-drop for CSV files only
+document.body.addEventListener('dragover', e => {
+  // Only intercept if it's a file drag (has files in dataTransfer)
+  if (e.dataTransfer.types.includes('Files')) e.preventDefault();
+});
 document.body.addEventListener('drop', e => {
+  if (!e.dataTransfer.types.includes('Files')) return;
   e.preventDefault();
   const file = [...(e.dataTransfer.files||[])].find(f=>f.name.endsWith('.csv'));
   if (file) {
