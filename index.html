@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v27 -->
+<!-- RFP-BUILD-v29 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -1308,51 +1308,6 @@ async function syncFromGoogleSheet(clearFirst = false) {
   }
 }
 
-async function syncFromGoogleSheet() {
-  setSyncStatus('saving', 'Connecting to Google Sheet...');
-  try {
-    const token = await getAccessToken();
-    setSyncStatus('saving', 'Fetching sheet data...');
-    const csv = await fetchSheetAsCSV(token);
-
-    // Reuse the existing CSV parser — sheet is in same Thu-Wed format
-    const extracted = extractTransactionsFromCSV(csv);
-    const dates = Object.keys(extracted).filter(k => k.startsWith(String(YEAR)));
-
-    if (!dates.length) {
-      setSyncStatus('error', 'No 2026 data found in sheet');
-      return;
-    }
-
-    // Smart merge — same logic as CSV import
-    let addedCount = 0;
-    const now = Date.now();
-    Object.entries(extracted).forEach(([dateKey, txs]) => {
-      if (!dateKey.startsWith(String(YEAR))) return;
-      const d = getDay(dateKey);
-      txs.forEach(tx => {
-        const exists = d.transactions.some(t =>
-          t.name === tx.name && Math.abs((t.amount||0) - tx.amount) < 0.01
-        );
-        if (!exists) {
-          d.transactions.push({ ...tx, category: detectCat(tx.name) });
-          addedCount++;
-        }
-      });
-    });
-
-    if (addedCount > 0) {
-      scheduleSave();
-      renderAll();
-      setSyncStatus('synced', `✓ Sheet sync: ${addedCount} new transactions added`);
-    } else {
-      setSyncStatus('synced', '✓ Sheet sync: already up to date');
-    }
-  } catch(e) {
-    console.error('Sheet sync error:', e);
-    setSyncStatus('error', 'Sheet sync failed: ' + e.message);
-  }
-}
 
 // ── RENDER ───────────────────────────────────────────────────
 function renderDayCol(day, m, balMap, isBlank) {
