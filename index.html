@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v36 -->
+<!-- RFP-BUILD-v37 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rowles Financial Planner 2026</title>
+<title>Rowles Financial Planner</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Roboto',sans-serif;font-size:12px;background:var(--bg-page);color:var(--text-primary);min-height:100vh;transition:background 0.2s,color 0.2s}
+body{font-family:'Roboto',sans-serif;font-size:13px;background:var(--bg-page);color:var(--text-primary);min-height:100vh;transition:background 0.2s,color 0.2s}
 
 /* Centered page wrapper — all content constrained to 1400px max, centered */
 .page-wrap{max-width:1400px;margin:0 auto;width:100%}
@@ -37,34 +37,34 @@ html[data-theme="dark"]{
 .app-header{background:#1e2a4a;border-bottom:2px solid #2d3f6e;position:sticky;top:0;z-index:200}
 html[data-theme="dark"] .app-header{background:#0d1525;border-bottom-color:#1a2a4a}
 .app-header .page-wrap{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.app-header h1{font-size:14px;font-weight:700;color:#e8efff;letter-spacing:0.3px;white-space:nowrap}
+.app-header h1{font-size:15px;font-weight:700;color:#e8efff;letter-spacing:0.3px;white-space:nowrap}
 .hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.hbtn{background:#2d3f6e;border:1px solid #3d5090;color:#c8d8ff;padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;font-family:'Roboto',sans-serif;font-weight:500;white-space:nowrap}
+.hbtn{background:#2d3f6e;border:1px solid #3d5090;color:#c8d8ff;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;font-family:'Roboto',sans-serif;font-weight:500;white-space:nowrap}
 .hbtn:hover{background:#3d5090}
 .hbtn.green{background:#14532d;border-color:#1a8040;color:#86efac}
 .hbtn.green:hover{background:#1a6e38}
-.hbtn.theme-btn{background:#374151;border-color:#4b5563;color:#e0e0e0;font-size:13px;padding:3px 9px}
+.hbtn.theme-btn{background:#374151;border-color:#4b5563;color:#e0e0e0;font-size:14px;padding:3px 9px}
 .hbtn.theme-btn:hover{background:#4b5563}
 .hbtn.danger{background:#7f1d1d;border-color:#dc2626;color:#fca5a5}
 .hbtn.danger:hover{background:#991b1b}
-.tr-lbl{color:#8898bb;font-size:11px}
-.tr-val{font-weight:700;font-family:'Roboto Mono',monospace;font-size:12px}
+.tr-lbl{color:#8898bb;font-size:12px}
+.tr-val{font-weight:700;font-family:'Roboto Mono',monospace;font-size:13px}
 .pos{color:#16a34a}.neg{color:#dc2626}.warn{color:#d97706}
 
 /* Auth overlay */
 .auth-overlay{position:fixed;inset:0;background:var(--bg-page);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:20px}
 .auth-box{background:var(--bg-card);border:1px solid var(--border-modal);border-radius:12px;padding:40px;text-align:center;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
-.auth-box h2{font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px}
-.auth-box p{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
-.auth-box .logo{font-size:48px;margin-bottom:16px}
-.google-btn{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dadce0;border-radius:6px;padding:10px 20px;font-size:14px;font-weight:500;color:#3c4043;cursor:pointer;font-family:'Roboto',sans-serif;transition:background 0.15s;width:100%;justify-content:center}
+.auth-box h2{font-size:21px;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.auth-box p{font-size:14px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+.auth-box .logo{font-size:49px;margin-bottom:16px}
+.google-btn{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dadce0;border-radius:6px;padding:10px 20px;font-size:15px;font-weight:500;color:#3c4043;cursor:pointer;font-family:'Roboto',sans-serif;transition:background 0.15s;width:100%;justify-content:center}
 .google-btn:hover{background:#f8f9fa;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
 .google-btn svg{width:18px;height:18px;flex-shrink:0}
 
 /* Sync status */
 .sync-bar{background:#1a2a3a;border-bottom:1px solid #1e3a4a}
 html[data-theme="dark"] .sync-bar{background:#080c14}
-.sync-bar .page-wrap{padding:3px 14px;display:flex;align-items:center;justify-content:space-between;font-size:10px;min-height:22px}
+.sync-bar .page-wrap{padding:3px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;min-height:22px}
 .sync-status{display:flex;align-items:center;gap:6px;color:#7a9abb}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0;transition:background 0.3s}
 .sync-dot.synced{background:#4ade80}
@@ -106,14 +106,14 @@ html[data-theme="dark"] .m11{--mc:#162226;--ml:#0f1a1f;--mt:#7dd3fc}
 .month-header{background:var(--mh);padding:8px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;gap:10px}
 .month-header:hover{filter:brightness(1.1)}
 .month-left{display:flex;align-items:center;gap:12px;flex-shrink:0}
-.month-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:0.2px;white-space:nowrap}
+.month-title{font-size:15px;font-weight:700;color:#fff;letter-spacing:0.2px;white-space:nowrap}
 .month-stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-.mstat{display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap}
-.mstat-lbl{color:rgba(255,255,255,0.6);font-weight:400;text-transform:uppercase;letter-spacing:0.4px;font-size:9px}
-.mstat-val{font-family:'Roboto Mono',monospace;font-weight:700;color:#fff;font-size:11px}
+.mstat{display:flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap}
+.mstat-lbl{color:rgba(255,255,255,0.6);font-weight:400;text-transform:uppercase;letter-spacing:0.4px;font-size:10px}
+.mstat-val{font-family:'Roboto Mono',monospace;font-weight:700;color:#fff;font-size:12px}
 .mstat-val.mpos{color:#c8e6c9}.mstat-val.mneg{color:#ffcdd2}.mstat-val.mwarn{color:#ffe082}.mstat-val.mneutral{color:rgba(255,255,255,0.85)}
-.mstat-sep{color:rgba(255,255,255,0.2);font-size:10px}
-.month-arrow{font-size:11px;color:rgba(255,255,255,0.8);transition:transform 0.15s;flex-shrink:0}
+.mstat-sep{color:rgba(255,255,255,0.2);font-size:11px}
+.month-arrow{font-size:12px;color:rgba(255,255,255,0.8);transition:transform 0.15s;flex-shrink:0}
 .month-arrow.open{transform:rotate(90deg)}
 .month-body{display:none}.month-body.open{display:block}
 
@@ -122,8 +122,8 @@ html[data-theme="dark"] .m11{--mc:#162226;--ml:#0f1a1f;--mt:#7dd3fc}
 .day-grid{display:grid;grid-template-columns:repeat(7,1fr);min-width:0}
 .day-col{border-right:1px solid var(--border-main);display:flex;flex-direction:column;background:var(--bg-card);min-width:0}.day-col:last-of-type{border-right:none}
 .day-hdr{padding:4px 5px;text-align:center;border-bottom:1px solid var(--border-main);background:var(--mc)}
-.dname{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mt);opacity:0.6;font-weight:500}
-.ddate{font-size:13px;font-weight:700;color:var(--mt)}
+.dname{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--mt);opacity:0.6;font-weight:500}
+.ddate{font-size:14px;font-weight:700;color:var(--mt)}
 .day-hdr.past{background:var(--bg-past-hdr)!important}
 .day-hdr.past .dname{color:var(--text-past-name)!important;opacity:1}
 .day-hdr.past .ddate{color:var(--text-past-day)!important}
@@ -132,7 +132,7 @@ html[data-theme="dark"] .m11{--mc:#162226;--ml:#0f1a1f;--mt:#7dd3fc}
 .day-col.past-col .tx-list{background:var(--bg-past-col)}
 .day-col.past-col .day-bal-row{background:var(--bg-past-colhdr)}
 .day-hdr.today{outline:3px solid var(--mb);outline-offset:-2px;z-index:2}
-.day-hdr.today .ddate{color:var(--mh);font-size:14px}
+.day-hdr.today .ddate{color:var(--mh);font-size:15px}
 html[data-theme="dark"] .day-hdr.today .ddate{color:var(--mt)}
 .day-col.blank-day{background:var(--bg-blank)}
 .day-col.blank-day .day-hdr{background:var(--bg-blank-hdr)!important;cursor:default}
@@ -145,7 +145,7 @@ html[data-theme="dark"] .day-hdr.today .ddate{color:var(--mt)}
 .day-col.blank-day .bal-lbl,.day-col.blank-day .bal-val{color:var(--text-blank);cursor:default}
 .day-col.blank-day .add-row{display:none}
 
-.col-hdr-row{display:grid;grid-template-columns:1fr 62px 18px;padding:2px 4px;background:var(--bg-col-hdr);font-size:9px;color:var(--text-muted);border-bottom:1px solid var(--border-col);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.col-hdr-row{display:grid;grid-template-columns:1fr 62px 18px;padding:2px 4px;background:var(--bg-col-hdr);font-size:10px;color:var(--text-muted);border-bottom:1px solid var(--border-col);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
 .tx-list{flex:1}
 .tx-row{display:grid;grid-template-columns:1fr 62px 18px;padding:2px 4px;border-bottom:1px solid var(--border-col);align-items:center;min-height:20px}
 .tx-row:hover{background:var(--tx-hover)}
@@ -165,13 +165,13 @@ html[data-theme="dark"] .tx-row.opening-bal .tx-nm{color:#fbbf24!important}
 .tx-row.opening-bal .tx-amt{color:#92400e!important;font-weight:700}
 html[data-theme="dark"] .tx-row.opening-bal .tx-amt{color:#fbbf24!important}
 
-.tx-nm{font-size:10px;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500;display:flex;align-items:center;gap:3px;min-width:0}.tx-nm-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-nm{font-size:11px;cursor:pointer;border-radius:2px;padding:0 2px;font-weight:500;display:flex;align-items:center;gap:3px;min-width:0}.tx-nm-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tx-nm:hover{background:rgba(0,0,0,0.05)}
 html[data-theme="dark"] .tx-nm:hover{background:rgba(255,255,255,0.07)}
 
 /* NEW badge shown on freshly imported transactions */
 .tx-new-badge{
-  display:inline-block;font-size:7px;font-weight:700;letter-spacing:0.5px;
+  display:inline-block;font-size:8px;font-weight:700;letter-spacing:0.5px;
   background:#7c3aed;color:#fff;border-radius:3px;padding:1px 3px;
   margin-left:3px;vertical-align:middle;text-transform:uppercase;
   flex-shrink:0;white-space:nowrap;
@@ -181,32 +181,32 @@ html[data-theme="dark"] .tx-new-badge{background:#6d28d9}
 html[data-theme="dark"] .tx-row.bank-import .tx-nm span:first-child{color:#9333ea!important;font-style:italic}
 html[data-theme="dark"] .tx-row.bank-import .tx-nm span:first-child{color:#c084fc!important}
 .import-preview{max-height:260px;overflow-y:auto;margin-top:10px;border:1px solid var(--border-col);border-radius:5px}
-.import-preview-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border-col);font-size:10px;gap:8px}
+.import-preview-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border-col);font-size:11px;gap:8px}
 .import-preview-row:last-child{border-bottom:none}
 .import-preview-row:nth-child(odd){background:var(--bg-card2)}
-.import-preview-date{color:var(--text-muted);font-family:'Roboto Mono',monospace;white-space:nowrap;font-size:9px}
+.import-preview-date{color:var(--text-muted);font-family:'Roboto Mono',monospace;white-space:nowrap;font-size:10px}
 .import-preview-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .import-preview-amt{font-family:'Roboto Mono',monospace;font-weight:700;white-space:nowrap}
-.import-summary{font-size:11px;color:var(--text-muted);margin-top:8px;padding:6px 8px;background:var(--bg-card2);border-radius:5px;line-height:1.7}
+.import-summary{font-size:12px;color:var(--text-muted);margin-top:8px;padding:6px 8px;background:var(--bg-card2);border-radius:5px;line-height:1.7}
 .import-summary strong{color:var(--text-primary)}
 
 /* Drag-over state for import */
 .import-drop-zone{
   border:2px dashed var(--border-modal);border-radius:8px;padding:20px;text-align:center;
-  cursor:pointer;font-size:12px;color:var(--text-muted);transition:all 0.15s;margin-top:12px
+  cursor:pointer;font-size:13px;color:var(--text-muted);transition:all 0.15s;margin-top:12px
 }
 .import-drop-zone:hover,.import-drop-zone.drag-over{border-color:#7c3aed;background:rgba(124,58,237,0.05);color:var(--text-primary)}
-.tx-amt{font-size:10px;text-align:right;font-family:'Roboto Mono',monospace;font-weight:700}
+.tx-amt{font-size:11px;text-align:right;font-family:'Roboto Mono',monospace;font-weight:700}
 .tx-amt.neg{color:#dc2626}.tx-amt.pos{color:#16a34a}
 html[data-theme="dark"] .tx-amt.neg{color:#f87171}
 html[data-theme="dark"] .tx-amt.pos{color:#4ade80}
 .tx-chk{display:flex;align-items:center;justify-content:center}
 .tx-chk input{width:11px;height:11px;cursor:pointer;accent-color:#16a34a}
-.add-row{text-align:center;cursor:pointer;font-size:16px;color:var(--add-row-color);padding:2px;line-height:1;background:var(--bg-add-row)}
+.add-row{text-align:center;cursor:pointer;font-size:17px;color:var(--add-row-color);padding:2px;line-height:1;background:var(--bg-add-row)}
 .add-row:hover{color:var(--add-row-hover);background:var(--tx-hover)}
 .day-bal-row{padding:3px 5px;border-top:1px solid var(--border-col);display:flex;justify-content:space-between;background:var(--bal-row-bg)}
-.bal-lbl{font-size:9px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
-.bal-val{font-size:10px;font-weight:700;font-family:'Roboto Mono',monospace}
+.bal-lbl{font-size:10px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.bal-val{font-size:11px;font-weight:700;font-family:'Roboto Mono',monospace}
 /* Low balance alert — $500 or under */
 .bal-val.alert-warn{color:#fff!important;background:#d97706;border-radius:3px;padding:1px 5px}
 html[data-theme="dark"] .bal-val.alert-warn{background:#92400e;color:#fde68a!important}
@@ -240,24 +240,24 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
 /* Stats panel */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
 .stat-card{background:var(--bg-card);border:1px solid var(--border-col);border-radius:8px;padding:14px;box-shadow:var(--shadow)}
-.stat-card-label{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);font-weight:600;margin-bottom:6px;font-family:'Roboto',sans-serif}
-.stat-card-value{font-size:22px;font-weight:700;font-family:'Roboto Mono',monospace}
-.stat-card-sub{font-size:10px;color:var(--text-muted);margin-top:4px;font-family:'Roboto',sans-serif}
+.stat-card-label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);font-weight:600;margin-bottom:6px;font-family:'Roboto',sans-serif}
+.stat-card-value{font-size:23px;font-weight:700;font-family:'Roboto Mono',monospace}
+.stat-card-sub{font-size:11px;color:var(--text-muted);margin-top:4px;font-family:'Roboto',sans-serif}
 .stats-section{margin-bottom:28px}
-.stats-section-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:12px;font-family:'Roboto',sans-serif;border-bottom:1px solid var(--border-col);padding-bottom:6px}
-.stats-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;font-family:'Roboto',sans-serif}
+.stats-section-title{font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:12px;font-family:'Roboto',sans-serif;border-bottom:1px solid var(--border-col);padding-bottom:6px}
+.stats-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;font-family:'Roboto',sans-serif}
 .stats-bar-label{width:120px;text-align:right;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
 .stats-bar-track{flex:1;background:var(--border-col);border-radius:3px;height:14px;overflow:hidden}
 .stats-bar-fill{height:100%;border-radius:3px;transition:width 0.4s}
-.stats-bar-val{width:80px;font-family:'Roboto Mono',monospace;font-weight:600;font-size:10px;color:var(--text-primary);flex-shrink:0}
+.stats-bar-val{width:80px;font-family:'Roboto Mono',monospace;font-weight:600;font-size:11px;color:var(--text-primary);flex-shrink:0}
 .month-bal-chart{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:8px}
 .month-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
 .month-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height 0.3s}
-.month-bar-lbl{font-size:8px;color:var(--text-muted);font-family:'Roboto',sans-serif;text-align:center}
-.month-bar-val{font-size:7px;color:var(--text-muted);font-family:'Roboto Mono',monospace;text-align:center}
+.month-bar-lbl{font-size:9px;color:var(--text-muted);font-family:'Roboto',sans-serif;text-align:center}
+.month-bar-val{font-size:8px;color:var(--text-muted);font-family:'Roboto Mono',monospace;text-align:center}
 .stats-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:600px){.stats-two-col{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}}
-.top-tx-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:4px;font-size:11px;font-family:'Roboto',sans-serif;border-bottom:1px solid var(--border-col)}
+.top-tx-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:4px;font-size:12px;font-family:'Roboto',sans-serif;border-bottom:1px solid var(--border-col)}
 .top-tx-row:last-child{border-bottom:none}
 .top-tx-row:nth-child(odd){background:var(--bg-card2)}
 
@@ -268,13 +268,13 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
 .drawer{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1a2035;border-right:2px solid #2d3f6e;z-index:301;transform:translateX(-100%);transition:transform 0.25s ease;display:flex;flex-direction:column;overflow:hidden}
 .drawer.open{transform:translateX(0)}
 .drawer-header{padding:16px 14px 12px;border-bottom:1px solid #2d3f6e}
-.drawer-header h3{font-size:13px;font-weight:700;color:#e8efff;font-family:'Roboto',sans-serif}
-.drawer-header p{font-size:10px;color:#8898bb;margin-top:3px;font-family:'Roboto',sans-serif}
+.drawer-header h3{font-size:14px;font-weight:700;color:#e8efff;font-family:'Roboto',sans-serif}
+.drawer-header p{font-size:11px;color:#8898bb;margin-top:3px;font-family:'Roboto',sans-serif}
 .drawer-years{flex:1;overflow-y:auto;padding:8px 0}
-.drawer-year-btn{width:100%;text-align:left;padding:10px 16px;border:none;background:none;color:#c8d8ff;font-size:13px;font-family:'Roboto',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background 0.15s}
+.drawer-year-btn{width:100%;text-align:left;padding:10px 16px;border:none;background:none;color:#c8d8ff;font-size:14px;font-family:'Roboto',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background 0.15s}
 .drawer-year-btn:hover{background:#2d3f6e}
 .drawer-year-btn.active{background:#2d3f6e;color:#fff;font-weight:700}
-.drawer-year-btn .yr-badge{font-size:9px;background:#1e3a1e;color:#4ade80;padding:2px 6px;border-radius:10px;font-weight:600}
+.drawer-year-btn .yr-badge{font-size:10px;background:#1e3a1e;color:#4ade80;padding:2px 6px;border-radius:10px;font-weight:600}
 .drawer-year-btn.active .yr-badge{background:#14532d}
 .drawer-footer{padding:10px 14px;border-top:1px solid #2d3f6e}
 html[data-theme="dark"] .drawer{background:#0d1020;border-right-color:#1a2a4a}
@@ -285,13 +285,13 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
 
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:500}
 .modal{background:var(--bg-modal);border:1px solid var(--border-modal);border-radius:10px;padding:20px;min-width:290px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.25);font-family:'Roboto',sans-serif}
-.modal h3{font-size:13px;margin-bottom:12px;color:var(--text-primary);font-weight:700}
-.modal label{display:block;font-size:10px;color:var(--text-muted);margin-bottom:3px;margin-top:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
-.modal input,.modal select{width:100%;background:var(--bg-card2);border:1px solid var(--border-modal);color:var(--text-primary);padding:6px 9px;border-radius:5px;font-size:12px;font-family:'Roboto',sans-serif}
+.modal h3{font-size:14px;margin-bottom:12px;color:var(--text-primary);font-weight:700}
+.modal label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:3px;margin-top:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
+.modal input,.modal select{width:100%;background:var(--bg-card2);border:1px solid var(--border-modal);color:var(--text-primary);padding:6px 9px;border-radius:5px;font-size:13px;font-family:'Roboto',sans-serif}
 .modal input[type=checkbox]{width:auto}
-.modal-note{font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5}
+.modal-note{font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5}
 .mbtns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
-.mbtns button{padding:6px 16px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border-modal);background:var(--bg-card2);color:var(--text-primary);font-weight:600;font-family:'Roboto',sans-serif}
+.mbtns button{padding:6px 16px;border-radius:5px;font-size:12px;cursor:pointer;border:1px solid var(--border-modal);background:var(--bg-card2);color:var(--text-primary);font-weight:600;font-family:'Roboto',sans-serif}
 .mbtns .mbsave{background:#1e4d2e;border-color:#1a8040;color:#86efac}
 .mbtns .mbdel{background:#7f1d1d;border-color:#dc2626;color:#fca5a5}
 .mbtns button:hover{filter:brightness(1.1)}
@@ -307,8 +307,8 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
     <div class="logo">💰</div>
     <h2>Rowles Financial Planner</h2>
     <p>Enter your password to access the planner.</p>
-    <input type="password" id="pin-input" placeholder="Password" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #3d5090;background:#1a2a4a;color:#e8efff;font-size:16px;margin-top:16px;outline:none;font-family:'Roboto',sans-serif" autocomplete="current-password">
-    <div id="pin-error" style="color:#f87171;font-size:12px;margin-top:8px;min-height:18px"></div>
+    <input type="password" id="pin-input" placeholder="Password" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #3d5090;background:#1a2a4a;color:#e8efff;font-size:17px;margin-top:16px;outline:none;font-family:'Roboto',sans-serif" autocomplete="current-password">
+    <div id="pin-error" style="color:#f87171;font-size:13px;margin-top:8px;min-height:18px"></div>
     <button class="google-btn" id="btn-pin-login" style="margin-top:8px;justify-content:center">Unlock</button>
   </div>
 </div>
@@ -324,19 +324,18 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
   </div>
   <div class="drawer-years" id="drawer-years"></div>
   <div class="drawer-footer">
-    <div style="font-size:10px;color:#8898bb;font-family:'Roboto',sans-serif">Data stored locally per year</div>
+    <div style="font-size:11px;color:#8898bb;font-family:'Roboto',sans-serif">Data stored locally per year</div>
   </div>
 </div>
 
 <div id="app">
   <div class="app-header">
     <div class="page-wrap">
-      <h1>💰 Rowles Financial Planner 2026</h1>
+      <h1>Rowles Financial Planner</h1>
       <div class="hdr-right">
         <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
         <span class="tr-val warn" id="yearlow-hdr">—</span>
-        <button class="hbtn" id="btn-open-drawer" style="background:#2d3f6e;border-color:#3d5090;color:#c8d8ff;font-size:13px;padding:4px 10px">☰ <span id="hdr-year">2026</span></button>
-        <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
+        <button class="hbtn" id="btn-open-drawer" style="background:#2d3f6e;border-color:#3d5090;color:#c8d8ff;font-size:14px;padding:4px 10px">☰ <span id="hdr-year">2026</span></button>
         <button class="hbtn" id="btn-stats" style="background:#4c1d95;border-color:#6d28d9;color:#ddd6fe">📊 Stats</button>
         <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
         <input type="file" id="csv-file-input" accept=".csv" style="display:none">
@@ -364,8 +363,8 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
 <div id="stats-overlay" style="display:none;position:fixed;inset:0;background:var(--bg-page);z-index:300;overflow-y:auto">
   <div style="max-width:1100px;margin:0 auto;padding:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h2 style="font-size:18px;font-weight:700;color:var(--text-primary);font-family:'Roboto',sans-serif" id="stats-title">📊 2026 Financial Stats</h2>
-      <button id="btn-stats-close" class="hbtn" style="font-size:13px">✕ Close</button>
+      <h2 style="font-size:19px;font-weight:700;color:var(--text-primary);font-family:'Roboto',sans-serif" id="stats-title">📊 2026 Financial Stats</h2>
+      <button id="btn-stats-close" class="hbtn" style="font-size:14px">✕ Close</button>
     </div>
     <div id="stats-content"></div>
   </div>
@@ -626,7 +625,7 @@ function openModal(dk_key, txIdx) {
           <label>Specific date</label>
           <input type="date" id="mspecdate" min="${minDate}" max="${maxDate}" value="${minDate}">
         </div>
-        <p style="font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5">
+        <p style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5">
           This will add the transaction to all matching dates from <strong>${dk_key}</strong> through Dec 31, ${YEAR}.
         </p>
       </div>
@@ -864,7 +863,7 @@ function openImportModal(csvText) {
           <span class="import-preview-amt ${tx.amount<0?'neg':'pos'}">${fmtM(tx.amount)}</span>
         </div>`).join('')}
       ${preview.length > 80 ? `<div class="import-preview-row" style="color:var(--text-muted);font-style:italic">...and ${preview.length-80} more</div>` : ''}
-    </div>` : `<p style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing new to import — all transactions already exist.</p>`}
+    </div>` : `<p style="font-size:12px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing new to import — all transactions already exist.</p>`}
     <div class="mbtns">
       <button id="mcancel">Cancel</button>
       ${preview.length > 0 ? '<button class="mbsave" id="mimport">Import ' + preview.length + ' Transactions</button>' : ''}
@@ -983,33 +982,33 @@ function showConflictReview(conflicts, cleanNew, alreadyImported, decisions = []
 
   root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:480px;width:95%">
     <h3>⚠️ Possible Duplicate — ${idx+1} of ${conflicts.length}</h3>
-    <p style="font-size:11px;color:var(--text-muted);margin-bottom:12px">
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
       Found a transaction in your planner on <strong>${bankRow.dateKey}</strong> with the same amount as the bank entry. Is this the same transaction?
     </p>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
       <div style="background:var(--bg-card2);border:1px solid var(--border-col);border-radius:6px;padding:10px">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;font-weight:700">Already in Planner</div>
-        <div style="font-size:11px;font-weight:600;color:var(--text-primary);margin-bottom:4px">${existingTx.name||'—'}</div>
-        <div style="font-size:12px;font-family:'Roboto Mono',monospace;font-weight:700;${(existingTx.amount||0)<0?'color:#dc2626':'color:#16a34a'}">${fmtM(existingTx.amount||0)}</div>
-        <div style="font-size:9px;color:var(--text-muted);margin-top:4px">${bankRow.dateKey}</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px;font-weight:700">Already in Planner</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:4px">${existingTx.name||'—'}</div>
+        <div style="font-size:13px;font-family:'Roboto Mono',monospace;font-weight:700;${(existingTx.amount||0)<0?'color:#dc2626':'color:#16a34a'}">${fmtM(existingTx.amount||0)}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${bankRow.dateKey}</div>
       </div>
       <div style="background:var(--bg-card2);border:1px solid #7c3aed44;border-radius:6px;padding:10px">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#7c3aed;margin-bottom:6px;font-weight:700">From Bank CSV</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;word-break:break-word;line-height:1.4">${bankRow.desc||'No description'}</div>
-        <div style="font-size:12px;font-family:'Roboto Mono',monospace;font-weight:700;${bankRow.amount<0?'color:#dc2626':'color:#16a34a'}">${fmtM(bankRow.amount)}</div>
-        <div style="font-size:9px;color:var(--text-muted);margin-top:4px">${bankRow.dateKey}</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#7c3aed;margin-bottom:6px;font-weight:700">From Bank CSV</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;word-break:break-word;line-height:1.4">${bankRow.desc||'No description'}</div>
+        <div style="font-size:13px;font-family:'Roboto Mono',monospace;font-weight:700;${bankRow.amount<0?'color:#dc2626':'color:#16a34a'}">${fmtM(bankRow.amount)}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">${bankRow.dateKey}</div>
       </div>
     </div>
 
-    <p style="font-size:10px;color:var(--text-muted);text-align:center;margin:8px 0">${remaining > 1 ? `${remaining - 1} more conflict${remaining-1!==1?'s':''} to review after this` : 'Last conflict to review'}</p>
+    <p style="font-size:11px;color:var(--text-muted);text-align:center;margin:8px 0">${remaining > 1 ? `${remaining - 1} more conflict${remaining-1!==1?'s':''} to review after this` : 'Last conflict to review'}</p>
 
     <div class="mbtns" style="justify-content:space-between">
       <button id="mskip" style="background:#1e4d2e;border-color:#1a8040;color:#86efac;flex:1;margin-right:6px">✓ Same — Skip Import</button>
       <button id="madd" style="background:#7c3aed;border-color:#6d28d9;color:#fff;flex:1" class="mbtns">+ Different — Add Anyway</button>
     </div>
     <div style="text-align:center;margin-top:8px">
-      <button id="mskipall" style="background:none;border:none;color:var(--text-muted);font-size:10px;cursor:pointer;text-decoration:underline">Skip all remaining conflicts</button>
+      <button id="mskipall" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;text-decoration:underline">Skip all remaining conflicts</button>
     </div>
   </div></div>`;
 
@@ -1039,7 +1038,7 @@ function showBankPreview(toAdd, alreadyImported, decisions) {
       <strong style="color:#7c3aed">${toAdd.length} transactions</strong> will be added as "UPDATE ME"
       ${skipped ? `&nbsp;·&nbsp; <span style="color:var(--text-muted)">${skipped} conflict${skipped!==1?'s':''} skipped</span>` : ''}
       ${alreadyImported.length ? `&nbsp;·&nbsp; <span style="color:var(--text-muted)">${alreadyImported.length} already imported</span>` : ''}
-      <br><span style="font-size:10px;color:var(--text-muted)">Click any "UPDATE ME" after importing to rename it — the original bank description will be shown.</span>
+      <br><span style="font-size:11px;color:var(--text-muted)">Click any "UPDATE ME" after importing to rename it — the original bank description will be shown.</span>
     </div>
     ${toAdd.length > 0 ? `
     <div class="import-preview">
@@ -1050,7 +1049,7 @@ function showBankPreview(toAdd, alreadyImported, decisions) {
           <span class="import-preview-amt ${row.amount<0?'neg':'pos'}">${fmtM(row.amount)}</span>
         </div>`).join('')}
       ${toAdd.length > 80 ? `<div class="import-preview-row" style="color:var(--text-muted);font-style:italic">...and ${toAdd.length-80} more</div>` : ''}
-    </div>` : `<p style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing to add.</p>`}
+    </div>` : `<p style="font-size:12px;color:var(--text-muted);margin-top:10px;text-align:center;padding:16px">✓ Nothing to add.</p>`}
     <div class="mbtns">
       <button id="mcancel">Cancel</button>
       ${toAdd.length > 0 ? `<button class="mbsave" id="mbankimport">Import ${toAdd.length} Transactions</button>` : ''}
@@ -1270,7 +1269,7 @@ function renderDayCol(day, m, balMap, isBlank) {
       row.className=`tx-row ${isOpening?'':isAutoPay?'cp-auto':CAT_CLS[cat]||'cp-other'} ${paidClass}${tx.__bankImport?' bank-import':''}`;
       const isNew = tx.__bankImport && tx.__importedAt && (Date.now() - tx.__importedAt) < 7*24*60*60*1000;
       const newBadge = isNew ? '<span class="tx-new-badge">new</span>' : '';
-      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}"><span class="tx-nm-text">${tx.name||''}</span>${newBadge}</span><span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span><span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:11px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
+      row.innerHTML=`<span class="tx-nm" title="${(tx.name||'').replace(/"/g,'&quot;')}"><span class="tx-nm-text">${tx.name||''}</span>${newBadge}</span><span class="tx-amt ${(tx.amount||0)<0?'neg':'pos'}">${fmtM(tx.amount||0)}</span><span class="tx-chk">${isOpening?'<span style="cursor:pointer;font-size:12px">✎</span>':'<input type="checkbox"'+(tx.paid?' checked':'')+'>'}</span>`;
       row.querySelector('.tx-nm').onclick=()=>openModal(key,ti);
       if(!isOpening){ row.querySelector('input').onchange=e=>{tx.paid=e.target.checked; scheduleSave(); renderAll();}; }
       else { row.querySelector('.tx-chk span').onclick=()=>openModal(key,ti); }
@@ -1304,7 +1303,7 @@ function renderMonth(m, balMap) {
   const endCls=mEnd!==null?(mEnd>=0?'mpos':'mneg'):'mneutral';
   const minCls=mMin!==null&&mMin<500?'mneg':mMin!==null&&mMin<1000?'mwarn':'mneutral';
   mhdr.innerHTML=`
-    <span class="month-left"><span class="month-title">${MONTH_NAMES[m]}${allPast?' <span style="font-size:10px;opacity:0.5;font-weight:300">· past</span>':''}</span></span>
+    <span class="month-left"><span class="month-title">${MONTH_NAMES[m]}${allPast?' <span style="font-size:11px;opacity:0.5;font-weight:300">· past</span>':''}</span></span>
     <span class="month-stats">
       ${!isFuture?`
         <span class="mstat"><span class="mstat-lbl">In</span><span class="mstat-val mpos">+${inStr}</span></span>
@@ -1472,7 +1471,7 @@ document.getElementById('btn-clear-data').onclick = () => {
   const root = document.getElementById('modal-root');
   root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:360px">
     <h3>🗑 Clear All Data?</h3>
-    <p style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.6">
+    <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.6">
       This will permanently delete all transactions from the planner. Your opening balance will be kept.<br><br>
       <strong style="color:#dc2626">This cannot be undone.</strong>
     </p>
@@ -1502,9 +1501,6 @@ document.getElementById('btn-theme').onclick = () => {
   localStorage.setItem('rfp_theme', theme);
 };
 
-document.getElementById('btn-add-today').onclick = () => {
-  getDay(todayKey); openModal(todayKey, -1);
-};
 
 
 // ── STATS ──────────────────────────────────────────────────────
@@ -1716,10 +1712,10 @@ function renderStats() {
           <div class="stats-bar-track" style="height:8px"><div class="stats-bar-fill" style="width:${Math.round((income/maxNet)*100)}%;background:#16a34a"></div></div>
           <div class="stats-bar-track" style="height:8px"><div class="stats-bar-fill" style="width:${Math.round((expenses/maxNet)*100)}%;background:#dc2626"></div></div>
         </div>
-        <div class="stats-bar-val" style="font-size:9px">${fmtK(income)}<br><span style="color:#dc2626">${fmtK(expenses)}</span></div>
+        <div class="stats-bar-val" style="font-size:10px">${fmtK(income)}<br><span style="color:#dc2626">${fmtK(expenses)}</span></div>
       </div>`;
     }).join('')}
-    <div style="font-size:9px;color:var(--text-muted);margin-top:6px;display:flex;gap:12px">
+    <div style="font-size:10px;color:var(--text-muted);margin-top:6px;display:flex;gap:12px">
       <span>🟢 Income</span><span>🔴 Expenses</span>
     </div>
   </div>`;
@@ -1734,7 +1730,7 @@ function renderStats() {
         <div class="top-tx-row">
           <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:var(--text-primary)">${t.name}</span>
           <span style="color:#dc2626;font-family:'Roboto Mono',monospace;font-weight:700;margin-left:8px;flex-shrink:0">${fmt2(t.amount)}</span>
-          <span style="color:var(--text-muted);font-size:9px;margin-left:8px;flex-shrink:0">${t.date}</span>
+          <span style="color:var(--text-muted);font-size:10px;margin-left:8px;flex-shrink:0">${t.date}</span>
         </div>`).join('')}
       </div>
     </div>
@@ -1744,7 +1740,7 @@ function renderStats() {
         <div class="top-tx-row">
           <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:var(--text-primary)">${t.name}</span>
           <span style="color:#16a34a;font-family:'Roboto Mono',monospace;font-weight:700;margin-left:8px;flex-shrink:0">${fmt2(t.amount)}</span>
-          <span style="color:var(--text-muted);font-size:9px;margin-left:8px;flex-shrink:0">${t.date}</span>
+          <span style="color:var(--text-muted);font-size:10px;margin-left:8px;flex-shrink:0">${t.date}</span>
         </div>`).join('')}
       </div>
     </div>
@@ -1759,10 +1755,10 @@ function renderStats() {
         <div class="top-tx-row">
           <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:#dc2626;font-weight:600">${t.name}</span>
           <span style="color:#dc2626;font-family:'Roboto Mono',monospace;font-weight:700;margin-left:8px;flex-shrink:0">${fmt2(t.amount)}</span>
-          <span style="color:var(--text-muted);font-size:9px;margin-left:8px;flex-shrink:0">${t.date}</span>
+          <span style="color:var(--text-muted);font-size:10px;margin-left:8px;flex-shrink:0">${t.date}</span>
         </div>`).join('')}
       </div>
-      <div style="font-size:11px;color:#dc2626;font-weight:700;margin-top:8px;text-align:right">
+      <div style="font-size:12px;color:#dc2626;font-weight:700;margin-top:8px;text-align:right">
         Total unpaid: ${fmt2(unpaidTotal)}
       </div>
     </div>`;
