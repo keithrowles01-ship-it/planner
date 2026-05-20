@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v23 -->
+<!-- RFP-BUILD-v24 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -310,6 +310,7 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
         <button class="hbtn" id="btn-stats" style="background:#4c1d95;border-color:#6d28d9;color:#ddd6fe">📊 Stats</button>
         <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
         <input type="file" id="csv-file-input" accept=".csv" style="display:none">
+        <button class="hbtn" id="btn-sheets-sync" title="Sync from Google Sheet" style="background:#1a3a1a;border-color:#2d6a2d;color:#86efac">🔄 Sync Sheet</button>
         <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
         <button class="hbtn danger" id="btn-signout">Sign Out</button>
       </div>
@@ -1142,6 +1143,150 @@ function showBankPreview(toAdd, alreadyImported, decisions) {
   }
 }
 
+// ── GOOGLE SHEETS SYNC ────────────────────────────────────────
+// Service account credentials — read-only access to the budget sheet
+const SHEETS_CONFIG = {
+  sheetId: '1H4xb2tlcyWS_RZ7P5u4Czk9_1CfLqjwsVCnMCoc8LNM',
+  clientEmail: 'planner-reader@rowles-planner.iam.gserviceaccount.com',
+  // Private key — this file is public on GitHub Pages but the service account
+  // only has Viewer access to this one sheet. No write permissions.
+  privateKey: `-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDEEV9/98T5Wlso
++6aFBZ1+c7+uUXip013EJzbV3TcE3fLVFh0pAkrp/t9oxghAVsGREwqK/AJjHnEU
+XqzNLjSzC4xYNgiNVEQNnmmbJCTErekfJPxspWSitOAokXaG5FcTj2e44OX9YHrN
+6SQqWxi0Aes63aAPHP555sGe/Okkvl8hO7P/83NIQ5G6Xr6rEa1hsADlJPHeq4Bm
+qvqfbSLU61VcXHIi7bnykMkiGFKN54hPFgRjNT3rJvQ+OAZ2hRkvqKLzUpaiC5iH
+01bXqmiBGR1rKvDbXKIf7ZQ5QXlzd5vCLUCythR77ka5EcD40OwJqqhzjNMCQrLE
+NdtBTL/hAgMBAAECggEABY6OKRjl2iurfpQb8lRdfsEQ5e51BRp9OMBkGg1uEC3V
+LSELvFw5Bibn1eGaSBkysmX6gW673Ot23ietGJdDvZj+cN0+gqOTK9qj7hZzvKec
+KOU6CpSTxKvBLaJ/xuTFAK7VYaSYHXAE/aiAUqX9zijpbePsSSQJJKh7r4HwqU6i
+IqmMaM/NIywK9ddIzq9jrBS53m7H/KXjhg9V8HuTudvvmHxSH84iDt1Isx+9qT85
+dnHegshh6a6xmxKuCGPssoCahTFMEFfKbqxXoXOCq9/jf1B3Ods5lXysMwVL60fj
+Hz0mJu+qozL4S5PNRM1FCPqoJUkgj63WmG/OuMycBQKBgQD+3KB+b07QKJRmE+vJ
+X7BPHda3rBybTrA68TxQBHMmR1YBRUz0oJXxxAASDgMMz0q+tdOO4CTvoSkaSFBH
+MiKFMHfDjc5PvvC3wb0BqWbgaKDy7rFKsTjk5LW4yzpvSV/zYVB2PIvjDb8gxSqy
+XddMn5dmXuoJuJ9RQltwjJ6I/QKBgQDE8YeGU8aD0Wing6Mkb2IZmO+QNES0l6Xj
+NRwnoH+u64MkRnvuvRoFN1PYP+5vZ3QQxhxSZDGk6kSzOqzqVurCzHypiOTqNuOA
+xYVj1If9vuuW/A+h6qGyf2UnOAX350AoTy7zOSrcTpiEUo10/uS92d8YyWceCAMz
+b31ir4kJtQKBgQDF0BKV7+jZMhX0oNOqyiV7UuqcRu8xMEMijKjGZp3FgSrk85gG
+aznWm81+NffyElaubUxWIe0pPQo9BxGgIO6gN/1NABy40rfduHbt+kEKPstloxRi
+p+lD56yQUNT7GZVqvwaHrvjYc4v8cGxyYtm/9EK7x0GZ5/1oQbvdQJewNQKBgQCC
+60R6SUqX6ic15E4ZNGn0NjRamkRqAL1n8rBKr2jxsOG2xZwxMkgP253DDYzFRfJk
+DC5bnvtZc9pDgufbx/e7kw/z62qxP9ewjJ2FpYzZY4ddESabLkxbSlDF53ogN/vw
+T+MYEJKrbRv6Kp6afa81fZXO9mO0FQN7t8uURLhGWQKBgAYk4ADzfBOcXmIL1fxX
+ZP0GrETgHXMUWVFuXgMBDtSvogxWXD9JaVZy/rNnlm13CNxlndfzTQSPSG7fKcrx
+MWIarx12g66qNAa9tapXkCani5vyu/uzt7G4Nok0o3AnUHd4XxhES3o9+ENX/Xg9
+SNoFYv5gTy/JMsOxGeGgb7/+
+-----END PRIVATE KEY-----`
+};
+
+// ── JWT / OAuth helpers ────────────────────────────────────────
+// We need to sign a JWT to get a Google access token.
+// We use the WebCrypto API (available in all modern browsers) to sign with RS256.
+
+async function importPrivateKey(pem) {
+  const pemBody = pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  const der = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
+  return crypto.subtle.importKey(
+    'pkcs8', der.buffer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false, ['sign']
+  );
+}
+
+function base64urlEncode(data) {
+  let str;
+  if (typeof data === 'string') {
+    str = btoa(unescape(encodeURIComponent(data)));
+  } else {
+    str = btoa(String.fromCharCode(...new Uint8Array(data)));
+  }
+  return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function getAccessToken() {
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64urlEncode(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const payload = base64urlEncode(JSON.stringify({
+    iss: SHEETS_CONFIG.clientEmail,
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now
+  }));
+  const signingInput = `${header}.${payload}`;
+  const key = await importPrivateKey(SHEETS_CONFIG.privateKey);
+  const sigBytes = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5', key,
+    new TextEncoder().encode(signingInput)
+  );
+  const jwt = `${signingInput}.${base64urlEncode(sigBytes)}`;
+  const resp = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
+  });
+  const json = await resp.json();
+  if (!json.access_token) throw new Error('Token error: ' + JSON.stringify(json));
+  return json.access_token;
+}
+
+async function fetchSheetAsCSV(token) {
+  // Export the sheet as CSV — this gives us the raw spreadsheet content
+  const url = `https://docs.google.com/spreadsheets/d/${SHEETS_CONFIG.sheetId}/export?format=csv&gid=0`;
+  const resp = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!resp.ok) throw new Error(`Sheet fetch failed: ${resp.status} ${resp.statusText}`);
+  return resp.text();
+}
+
+async function syncFromGoogleSheet() {
+  setSyncStatus('saving', 'Connecting to Google Sheet...');
+  try {
+    const token = await getAccessToken();
+    setSyncStatus('saving', 'Fetching sheet data...');
+    const csv = await fetchSheetAsCSV(token);
+
+    // Reuse the existing CSV parser — sheet is in same Thu-Wed format
+    const extracted = extractTransactionsFromCSV(csv);
+    const dates = Object.keys(extracted).filter(k => k.startsWith(String(YEAR)));
+
+    if (!dates.length) {
+      setSyncStatus('error', 'No 2026 data found in sheet');
+      return;
+    }
+
+    // Smart merge — same logic as CSV import
+    let addedCount = 0;
+    const now = Date.now();
+    Object.entries(extracted).forEach(([dateKey, txs]) => {
+      if (!dateKey.startsWith(String(YEAR))) return;
+      const d = getDay(dateKey);
+      txs.forEach(tx => {
+        const exists = d.transactions.some(t =>
+          t.name === tx.name && Math.abs((t.amount||0) - tx.amount) < 0.01
+        );
+        if (!exists) {
+          d.transactions.push({ ...tx, category: detectCat(tx.name) });
+          addedCount++;
+        }
+      });
+    });
+
+    if (addedCount > 0) {
+      scheduleSave();
+      renderAll();
+      setSyncStatus('synced', `✓ Sheet sync: ${addedCount} new transactions added`);
+    } else {
+      setSyncStatus('synced', '✓ Sheet sync: already up to date');
+    }
+  } catch(e) {
+    console.error('Sheet sync error:', e);
+    setSyncStatus('error', 'Sheet sync failed: ' + e.message);
+  }
+}
+
 // ── RENDER ───────────────────────────────────────────────────
 function renderDayCol(day, m, balMap, isBlank) {
   const key=dk(day); const inMonth=day.getMonth()===m&&day.getFullYear()===YEAR;
@@ -1357,6 +1502,10 @@ document.body.addEventListener('drop', e => {
     reader.readAsText(file);
   }
 });
+
+document.getElementById('btn-sheets-sync').onclick = () => {
+  syncFromGoogleSheet();
+};
 
 document.getElementById('btn-theme').onclick = () => {
   theme = theme==='light' ? 'dark' : 'light';
