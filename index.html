@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v25 -->
+<!-- RFP-BUILD-v27 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -311,6 +311,7 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
         <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
         <input type="file" id="csv-file-input" accept=".csv" style="display:none">
         <button class="hbtn" id="btn-sheets-sync" title="Sync from Google Sheet" style="background:#1a3a1a;border-color:#2d6a2d;color:#86efac">🔄 Sync Sheet</button>
+        <button class="hbtn danger" id="btn-clear-data" title="Clear all planner data">🗑 Clear Data</button>
         <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
         <button class="hbtn danger" id="btn-signout">Sign Out</button>
       </div>
@@ -1232,9 +1233,9 @@ async function getAccessToken() {
 }
 
 async function fetchSheetAsCSV(token) {
-  // Use the Sheets API v4 to get all values from the sheet
-  // This returns JSON which we then convert to CSV format
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_CONFIG.sheetId}/values/A1:ZZ2000`;
+  // Specify the exact tab name to avoid pulling from the wrong sheet
+  const tabName = encodeURIComponent('2026');
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_CONFIG.sheetId}/values/${tabName}!A1:ZZ2000`;
   const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` }
   });
@@ -1245,10 +1246,8 @@ async function fetchSheetAsCSV(token) {
   const json = await resp.json();
   if (!json.values) throw new Error('No values returned from sheet');
 
-  // Convert 2D array to CSV string so the existing parser can handle it
   return json.values.map(row =>
     row.map(cell => {
-      // Quote cells that contain commas, quotes, or newlines
       const s = String(cell ?? '');
       if (s.includes(',') || s.includes('"') || s.includes('\n')) {
         return '"' + s.replace(/"/g, '""') + '"';
@@ -1256,6 +1255,57 @@ async function fetchSheetAsCSV(token) {
       return s;
     }).join(',')
   ).join('\n');
+}
+
+async function syncFromGoogleSheet(clearFirst = false) {
+  setSyncStatus('saving', 'Connecting to Google Sheet...');
+  try {
+    const token = await getAccessToken();
+    setSyncStatus('saving', 'Fetching 2026 tab...');
+    const csv = await fetchSheetAsCSV(token);
+
+    const extracted = extractTransactionsFromCSV(csv);
+    const dates = Object.keys(extracted).filter(k => k.startsWith(String(YEAR)));
+
+    if (!dates.length) {
+      setSyncStatus('error', 'No 2026 data found in sheet');
+      return;
+    }
+
+    if (clearFirst) {
+      // Wipe all non-opening transactions for dates covered by the sheet
+      dates.forEach(dateKey => {
+        const d = data[dateKey];
+        if (d) d.transactions = d.transactions.filter(t => t.__opening);
+      });
+    }
+
+    let addedCount = 0;
+    const now = Date.now();
+    Object.entries(extracted).forEach(([dateKey, txs]) => {
+      if (!dateKey.startsWith(String(YEAR))) return;
+      const d = getDay(dateKey);
+      txs.forEach(tx => {
+        const exists = d.transactions.some(t =>
+          t.name === tx.name && Math.abs((t.amount||0) - tx.amount) < 0.01
+        );
+        if (!exists) {
+          d.transactions.push({ ...tx, category: detectCat(tx.name) });
+          addedCount++;
+        }
+      });
+    });
+
+    scheduleSave();
+    renderAll();
+    setSyncStatus('synced', clearFirst
+      ? `✓ Sheet cleared & resynced: ${addedCount} transactions loaded`
+      : `✓ Sheet sync: ${addedCount} new transactions added`
+    );
+  } catch(e) {
+    console.error('Sheet sync error:', e);
+    setSyncStatus('error', 'Sheet sync failed: ' + e.message);
+  }
 }
 
 async function syncFromGoogleSheet() {
@@ -1521,7 +1571,34 @@ document.body.addEventListener('drop', e => {
 });
 
 document.getElementById('btn-sheets-sync').onclick = () => {
-  syncFromGoogleSheet();
+  syncFromGoogleSheet(false);
+};
+
+document.getElementById('btn-clear-data').onclick = () => {
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:360px">
+    <h3>🗑 Clear All Data?</h3>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.6">
+      This will permanently delete all transactions from the planner. Your opening balance will be kept.<br><br>
+      <strong style="color:#dc2626">This cannot be undone.</strong>
+    </p>
+    <div class="mbtns">
+      <button id="mcancel">Cancel</button>
+      <button class="mbdel" id="mconfirm-clear">Yes, Clear Everything</button>
+    </div>
+  </div></div>`;
+  document.getElementById('mcancel').onclick = () => root.innerHTML = '';
+  document.getElementById('mov').onclick = e => { if(e.target.id==='mov') root.innerHTML=''; };
+  document.getElementById('mconfirm-clear').onclick = async () => {
+    root.innerHTML = '';
+    // Keep only the opening balance key, wipe everything else
+    const ob = data[OPENING_KEY];
+    Object.keys(data).forEach(k => { if(k !== OPENING_KEY) delete data[k]; });
+    if(ob !== undefined) data[OPENING_KEY] = ob;
+    scheduleSave();
+    renderAll();
+    setSyncStatus('synced', 'All data cleared');
+  };
 };
 
 document.getElementById('btn-theme').onclick = () => {
