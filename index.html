@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v39 -->
+<!-- RFP-BUILD-v40 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -62,9 +62,9 @@ html[data-theme="dark"] .app-header{background:#0d1525;border-bottom-color:#1a2a
 /* Sync status */
 .sync-bar{background:#1a2a3a;border-bottom:1px solid #1e3a4a}
 html[data-theme="dark"] .sync-bar{background:#080c14}
-.sync-bar .page-wrap{padding:3px 14px;display:flex;align-items:center;justify-content:space-between;font-size:11px;min-height:22px}
+.sync-bar .page-wrap{padding:5px 14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;min-height:28px}
 .sync-status{display:flex;align-items:center;gap:6px;color:#7a9abb}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0;transition:background 0.3s}
+.sync-dot{width:9px;height:9px;border-radius:50%;background:#6b7280;flex-shrink:0;transition:background 0.3s}
 .sync-dot.synced{background:#4ade80}
 .sync-dot.saving{background:#fbbf24;animation:pulse 0.8s infinite}
 .sync-dot.error{background:#f87171}
@@ -74,18 +74,18 @@ html[data-theme="dark"] .sync-bar{background:#080c14}
 .months-container .page-wrap{padding:0 8px}
 .month-block{margin-bottom:8px;border-radius:8px;overflow:hidden;border:2px solid transparent;box-shadow:var(--shadow)}
 
-.m0{--mc:#e8f5e9;--mb:#4caf50;--mt:#1b5e20;--ml:#f1faf1;--mh:#2e7d32}
-.m1{--mc:#e3f2fd;--mb:#2196f3;--mt:#0d47a1;--ml:#f0f8ff;--mh:#1565c0}
-.m2{--mc:#f3e5f5;--mb:#9c27b0;--mt:#4a148c;--ml:#faf0fb;--mh:#6a1b9a}
-.m3{--mc:#fff8e1;--mb:#ffc107;--mt:#7c5200;--ml:#fffdf0;--mh:#f57f17}
-.m4{--mc:#fce4ec;--mb:#e91e63;--mt:#880e4f;--ml:#fff0f5;--mh:#c2185b}
-.m5{--mc:#e0f7fa;--mb:#00bcd4;--mt:#006064;--ml:#f0fdff;--mh:#00838f}
-.m6{--mc:#fff3e0;--mb:#ff9800;--mt:#7c3500;--ml:#fffaf0;--mh:#e65100}
-.m7{--mc:#e8eaf6;--mb:#3f51b5;--mt:#1a237e;--ml:#f2f3fc;--mh:#283593}
-.m8{--mc:#f1f8e9;--mb:#8bc34a;--mt:#33691e;--ml:#f7fbf0;--mh:#558b2f}
-.m9{--mc:#fce4f0;--mb:#e91e8c;--mt:#7b003c;--ml:#fff5f9;--mh:#ad1457}
-.m10{--mc:#f9fbe7;--mb:#cddc39;--mt:#4e5b00;--ml:#fcfdf0;--mh:#827717}
-.m11{--mc:#e1f5fe;--mb:#03a9f4;--mt:#01579b;--ml:#f0faff;--mh:#0277bd}
+.m0{--mc:#e8f5e9;--mb:#4caf50;--mt:#1b5e20;--ml:#f1faf1;--mh:#2d5a30}
+.m1{--mc:#e3f2fd;--mb:#2196f3;--mt:#0d47a1;--ml:#f0f8ff;--mh:#1a4a7a}
+.m2{--mc:#f3e5f5;--mb:#9c27b0;--mt:#4a148c;--ml:#faf0fb;--mh:#4a2060}
+.m3{--mc:#fff8e1;--mb:#ffc107;--mt:#7c5200;--ml:#fffdf0;--mh:#6b4a00}
+.m4{--mc:#fce4ec;--mb:#e91e63;--mt:#880e4f;--ml:#fff0f5;--mh:#7a1a40}
+.m5{--mc:#e0f7fa;--mb:#00bcd4;--mt:#006064;--ml:#f0fdff;--mh:#0a5060}
+.m6{--mc:#fff3e0;--mb:#ff9800;--mt:#7c3500;--ml:#fffaf0;--mh:#6b3200}
+.m7{--mc:#e8eaf6;--mb:#3f51b5;--mt:#1a237e;--ml:#f2f3fc;--mh:#1a2a6e}
+.m8{--mc:#f1f8e9;--mb:#8bc34a;--mt:#33691e;--ml:#f7fbf0;--mh:#2a5010}
+.m9{--mc:#fce4f0;--mb:#e91e8c;--mt:#7b003c;--ml:#fff5f9;--mh:#7a1050}
+.m10{--mc:#f9fbe7;--mb:#cddc39;--mt:#4e5b00;--ml:#fcfdf0;--mh:#4a5200}
+.m11{--mc:#e1f5fe;--mb:#03a9f4;--mt:#01579b;--ml:#f0faff;--mh:#0a4a6e}
 
 html[data-theme="dark"] .m0{--mc:#162616;--ml:#0f1f0f;--mt:#6ee06e}
 html[data-theme="dark"] .m1{--mc:#161626;--ml:#0f0f1f;--mt:#7ab3ff}
@@ -214,24 +214,26 @@ html[data-theme="dark"] .bal-val.alert-low{background:#7f1d1d;color:#fecaca!impo
 
 .cp-pay{background:#f0fdf4}.cp-gas{background:#f0fdf4}.cp-sub{background:#eff6ff}.cp-ins{background:#fffbeb}
 .cp-loan{background:#faf5ff}.cp-cc{background:#f5f3ff}.cp-util{background:#f0fdfa}.cp-rent{background:#fff1f2}
-.cp-medical{background:#fff7ed}.cp-food{background:#f7fee7}.cp-other{background:#fafafa}.cp-auto{background:#fff7ed;border-left:3px solid #ea580c}
-.cp-auto .tx-nm{color:#c2410c;font-style:italic}
+.cp-medical{background:#fff7ed}.cp-food{background:#f0fdf4;border-left:3px solid #22c55e}.cp-other{background:#fafafa}.cp-jtn{background:#e0f2fe;border-left:3px solid #0ea5e9}.cp-auto{background:#fff7ed;border-left:3px solid #ea580c}
+.cp-jtn .tx-nm{color:#0369a1}.cp-auto .tx-nm{color:#c2410c}
 .cp-pay .tx-nm{color:#166534}.cp-gas .tx-nm{color:#166534}.cp-sub .tx-nm{color:#1e40af}.cp-ins .tx-nm{color:#92400e}
 .cp-loan .tx-nm{color:#6b21a8}.cp-cc .tx-nm{color:#4c1d95}.cp-util .tx-nm{color:#134e4a}.cp-rent .tx-nm{color:#9f1239}
-.cp-medical .tx-nm{color:#9a3412}.cp-food .tx-nm{color:#3f6212}.cp-other .tx-nm{color:#374151}
+.cp-medical .tx-nm{color:#9a3412}.cp-food .tx-nm{color:#15803d}.cp-other .tx-nm{color:#374151}
 html[data-theme="dark"] .cp-pay{background:#132213}html[data-theme="dark"] .cp-gas{background:#132213}
 html[data-theme="dark"] .cp-sub{background:#111e2e}html[data-theme="dark"] .cp-ins{background:#2a1e0c}
 html[data-theme="dark"] .cp-loan{background:#1e0e2a}html[data-theme="dark"] .cp-cc{background:#180e2a}
 html[data-theme="dark"] .cp-util{background:#0c1c1c}html[data-theme="dark"] .cp-rent{background:#2a0e0e}
-html[data-theme="dark"] .cp-medical{background:#2a1408}html[data-theme="dark"] .cp-food{background:#121c0e}
+html[data-theme="dark"] .cp-medical{background:#2a1408}html[data-theme="dark"] .cp-food{background:#0a1f10;border-left:3px solid #22c55e}
 html[data-theme="dark"] .cp-other{background:#161616}
+html[data-theme="dark"] .cp-jtn{background:#082030;border-left:3px solid #0ea5e9}
 html[data-theme="dark"] .cp-auto{background:#1f1208;border-left:3px solid #ea580c}
-html[data-theme="dark"] .cp-auto .tx-nm{color:#fb923c;font-style:italic}
+html[data-theme="dark"] .cp-jtn .tx-nm{color:#38bdf8}
+html[data-theme="dark"] .cp-auto .tx-nm{color:#fb923c}
 html[data-theme="dark"] .cp-pay .tx-nm{color:#86efac}html[data-theme="dark"] .cp-gas .tx-nm{color:#86efac}
 html[data-theme="dark"] .cp-sub .tx-nm{color:#7ab3ff}html[data-theme="dark"] .cp-ins .tx-nm{color:#ffb347}
 html[data-theme="dark"] .cp-loan .tx-nm{color:#d17ae0}html[data-theme="dark"] .cp-cc .tx-nm{color:#a78bfa}
 html[data-theme="dark"] .cp-util .tx-nm{color:#5eead4}html[data-theme="dark"] .cp-rent .tx-nm{color:#fca5a5}
-html[data-theme="dark"] .cp-medical .tx-nm{color:#fb923c}html[data-theme="dark"] .cp-food .tx-nm{color:#a3e635}
+html[data-theme="dark"] .cp-medical .tx-nm{color:#fb923c}html[data-theme="dark"] .cp-food .tx-nm{color:#4ade80}
 html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
 
 
@@ -331,7 +333,7 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
     <div class="page-wrap">
       <h1>Rowles Financial Planner</h1>
       <div class="hdr-right">
-        <div id="yearlow-wrap" style="display:flex;align-items:center;gap:0;background:#1a2a3a;border:1px solid #2d3f6e;border-radius:6px;overflow:hidden;height:28px"><span style="padding:0 8px;font-size:12px;color:#8898bb;font-family:'Roboto',sans-serif;white-space:nowrap;border-right:1px solid #2d3f6e;height:100%;display:flex;align-items:center">Upcoming Low</span><span id="yearlow-hdr" style="padding:0 8px;font-weight:700;font-family:'Roboto Mono',monospace;font-size:12px;height:100%;display:flex;align-items:center">—</span><span id="yearlow-date" style="padding:0 8px;font-size:11px;color:#8898bb;font-family:'Roboto',sans-serif;border-left:1px solid #2d3f6e;height:100%;display:flex;align-items:center">—</span></div>
+        <div id="yearlow-wrap" style="display:flex;align-items:center;gap:0;background:#1a2a3a;border:1px solid #2d3f6e;border-radius:6px;overflow:hidden;height:28px;cursor:pointer" title="Click to jump to this date"><span style="padding:0 8px;font-size:12px;color:#8898bb;font-family:'Roboto',sans-serif;white-space:nowrap;border-right:1px solid #2d3f6e;height:100%;display:flex;align-items:center">Upcoming Low</span><span id="yearlow-hdr" style="padding:0 8px;font-weight:700;font-family:'Roboto Mono',monospace;font-size:12px;height:100%;display:flex;align-items:center">—</span><span id="yearlow-date" style="padding:0 8px;font-size:11px;color:#8898bb;font-family:'Roboto',sans-serif;border-left:1px solid #2d3f6e;height:100%;display:flex;align-items:center">—</span></div>
         <button class="hbtn" id="btn-open-drawer" style="background:#2d3f6e;border-color:#3d5090;color:#c8d8ff;font-size:14px;padding:4px 10px">☰ <span id="hdr-year">2026</span></button>
         <button class="hbtn" id="btn-stats" style="background:#4c1d95;border-color:#6d28d9;color:#ddd6fe">📊 Stats</button>
         <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
@@ -389,8 +391,8 @@ function localLoad() {
 let YEAR = 2026;
 const DAYS_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const CATS = ['PAY','GAS','SUB','INS','LOAN','CC','UTIL','RENT','MEDICAL','FOOD','OTHER'];
-const CAT_CLS = {PAY:'cp-pay',GAS:'cp-gas',SUB:'cp-sub',INS:'cp-ins',LOAN:'cp-loan',CC:'cp-cc',UTIL:'cp-util',RENT:'cp-rent',MEDICAL:'cp-medical',FOOD:'cp-food',OTHER:'cp-other'};
+const CATS = ['PAY','GAS','SUB','INS','LOAN','CC','UTIL','RENT','MEDICAL','FOOD','JTN','OTHER'];
+const CAT_CLS = {PAY:'cp-pay',GAS:'cp-gas',SUB:'cp-sub',INS:'cp-ins',LOAN:'cp-loan',CC:'cp-cc',UTIL:'cp-util',RENT:'cp-rent',MEDICAL:'cp-medical',FOOD:'cp-food',JTN:'cp-jtn',OTHER:'cp-other'};
 let OPENING_KEY = '__opening_2025__';
 function openingKeyForYear(y) { return `__opening_${y-1}__`; }
 
@@ -431,6 +433,7 @@ function detectCat(name) {
   if (u.startsWith('UTIL')) return 'UTIL';
   if (u.includes('RENT') || u === 'RENT') return 'RENT';
   if (u.includes('MEDICAL') || u.includes('MED -')) return 'MEDICAL';
+  if (u.startsWith('JTN')) return 'JTN';
   if (u.includes('FOOD') || u.includes('GROCERIES')) return 'FOOD';
   return 'OTHER';
 }
@@ -1256,6 +1259,7 @@ function renderDayCol(day, m, balMap, isBlank) {
   const di=(day.getDay()+6)%7;
   const col=document.createElement('div');
   col.className=`day-col${isBlank?' blank-day':''}${past&&!isBlank?' past-col':''}`;
+  col.dataset.key=key;
   const hdr=document.createElement('div');
   hdr.className=`day-hdr${past&&!isBlank?' past':''}${tod?' today':''}`;
   hdr.innerHTML=`<div class="dname">${DAYS_FULL[di].slice(0,3)}</div><div class="ddate">${inMonth||isBlank?fmt(day):'—'}</div>`;
@@ -1302,7 +1306,6 @@ function renderDayCol(day, m, balMap, isBlank) {
 
 function renderMonth(m, balMap) {
   const rows=buildMonthRows(m); const mb=document.createElement('div'); mb.className=`month-block m${m}`;
-  const mMin=monthMin(m,balMap); const mEnd=monthEndBal(m,balMap);
   const allPast=isMonthAllPast(m); const isOpen=shouldOpen(m);
   const stats=monthStats(m);
   const arrow=document.createElement('span'); arrow.className=`month-arrow${isOpen?' open':''}`; arrow.textContent='▶';
@@ -1310,8 +1313,6 @@ function renderMonth(m, balMap) {
   const inStr=fmtMShort(stats.totalIn); const outStr=fmtMShort(Math.abs(stats.totalOut));
   const avgStr=stats.elapsed>0?stats.avgPerDay.toFixed(1):'—';
   const isFuture=new Date(YEAR,m,1)>today;
-  const endCls=mEnd!==null?(mEnd>=0?'mpos':'mneg'):'mneutral';
-  const minCls=mMin!==null&&mMin<500?'mneg':mMin!==null&&mMin<1000?'mwarn':'mneutral';
   mhdr.innerHTML=`
     <span class="month-left"><span class="month-title">${MONTH_NAMES[m]}${allPast?' <span style="font-size:11px;opacity:0.5;font-weight:300">· past</span>':''}</span></span>
     <span class="month-stats">
@@ -1323,9 +1324,7 @@ function renderMonth(m, balMap) {
         <span class="mstat"><span class="mstat-lbl">Avg/day</span><span class="mstat-val mneutral">${avgStr}</span></span>
         <span class="mstat-sep">·</span>
       `:''}
-      <span class="mstat"><span class="mstat-lbl">Min</span><span class="mstat-val ${minCls}">${fmtMShort(mMin)}</span></span>
-      <span class="mstat-sep">·</span>
-      <span class="mstat"><span class="mstat-lbl">End</span><span class="mstat-val ${endCls}">${fmtMShort(mEnd)}</span></span>
+
     </span>`;
   mhdr.appendChild(arrow);
   const mbody=document.createElement('div'); mbody.className=`month-body${isOpen?' open':''}`;
@@ -1356,6 +1355,7 @@ function renderAll() {
   ensureOpeningTx();
   const balMap = buildBalanceMap();
   const upcoming = nextUpcomingLow(balMap);
+  window._upcomingLowDate = upcoming ? upcoming.date : null;
   const el = document.getElementById('yearlow-hdr');
   const dateEl = document.getElementById('yearlow-date');
   if (el) {
@@ -1441,6 +1441,26 @@ document.getElementById('pin-input').addEventListener('keydown', e => {
 
 
 document.getElementById('btn-open-drawer').onclick = openDrawer;
+
+document.getElementById('yearlow-wrap').onclick = () => {
+  if (!window._upcomingLowDate) return;
+  const key = dk(window._upcomingLowDate);
+  const m = window._upcomingLowDate.getMonth();
+  // Open the month if collapsed
+  const monthBlock = document.querySelector(`.month-block.m${m}`);
+  const monthBody = monthBlock ? monthBlock.querySelector('.month-body') : null;
+  const arrow = monthBlock ? monthBlock.querySelector('.month-arrow') : null;
+  if (monthBody && !monthBody.classList.contains('open')) {
+    monthBody.classList.add('open');
+    if (arrow) arrow.classList.add('open');
+  }
+  // Scroll to the day column
+  requestAnimationFrame(() => {
+    const dayEl = document.querySelector(`.day-col[data-key="${key}"]`);
+    if (dayEl) dayEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else if (monthBlock) monthBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+};
 document.getElementById('drawer-overlay').onclick = closeDrawer;
 
 buildDrawer();
