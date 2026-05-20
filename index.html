@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v37 -->
+<!-- RFP-BUILD-v39 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -47,8 +47,6 @@ html[data-theme="dark"] .app-header{background:#0d1525;border-bottom-color:#1a2a
 .hbtn.theme-btn:hover{background:#4b5563}
 .hbtn.danger{background:#7f1d1d;border-color:#dc2626;color:#fca5a5}
 .hbtn.danger:hover{background:#991b1b}
-.tr-lbl{color:#8898bb;font-size:12px}
-.tr-val{font-weight:700;font-family:'Roboto Mono',monospace;font-size:13px}
 .pos{color:#16a34a}.neg{color:#dc2626}.warn{color:#d97706}
 
 /* Auth overlay */
@@ -333,8 +331,7 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
     <div class="page-wrap">
       <h1>Rowles Financial Planner</h1>
       <div class="hdr-right">
-        <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
-        <span class="tr-val warn" id="yearlow-hdr">—</span>
+        <div id="yearlow-wrap" style="display:flex;align-items:center;gap:0;background:#1a2a3a;border:1px solid #2d3f6e;border-radius:6px;overflow:hidden;height:28px"><span style="padding:0 8px;font-size:12px;color:#8898bb;font-family:'Roboto',sans-serif;white-space:nowrap;border-right:1px solid #2d3f6e;height:100%;display:flex;align-items:center">Upcoming Low</span><span id="yearlow-hdr" style="padding:0 8px;font-weight:700;font-family:'Roboto Mono',monospace;font-size:12px;height:100%;display:flex;align-items:center">—</span><span id="yearlow-date" style="padding:0 8px;font-size:11px;color:#8898bb;font-family:'Roboto',sans-serif;border-left:1px solid #2d3f6e;height:100%;display:flex;align-items:center">—</span></div>
         <button class="hbtn" id="btn-open-drawer" style="background:#2d3f6e;border-color:#3d5090;color:#c8d8ff;font-size:14px;padding:4px 10px">☰ <span id="hdr-year">2026</span></button>
         <button class="hbtn" id="btn-stats" style="background:#4c1d95;border-color:#6d28d9;color:#ddd6fe">📊 Stats</button>
         <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
@@ -494,18 +491,18 @@ function buildBalanceMap() {
 // "Upcoming" means: find all future Wednesdays, get their balance, return the lowest.
 // This gives you the worst-case floor you'll hit before you pass it.
 function nextUpcomingLow(balMap) {
-  let low = Infinity;
+  let low = Infinity; let lowDate = null;
   const cur = new Date(today);
   const end = new Date(YEAR, 11, 31);
   while (cur <= end) {
     // 2 = Wednesday (0=Sun,1=Mon,2=Tue,3=Wed)
     if (cur.getDay() === 3) {
       const v = balMap[dk(cur)];
-      if (v !== null && v !== undefined && v < low) low = v;
+      if (v !== null && v !== undefined && v < low) { low = v; lowDate = new Date(cur); }
     }
     cur.setDate(cur.getDate() + 1);
   }
-  return low === Infinity ? null : low;
+  return low === Infinity ? null : { value: low, date: lowDate };
 }
 function weekMinFromMap(week, balMap) {
   let min = Infinity;
@@ -1113,6 +1110,7 @@ function switchYear(yr) {
   // Reset scroll and re-render
   window._firstRender = true;
   renderAll();
+  updateSyncTooltip();
   setSyncStatus('synced', `${yr} loaded`);
   closeDrawer();
 }
@@ -1187,6 +1185,14 @@ async function sendToStaging(dateKey, tx) {
   }
 }
 
+
+function updateSyncTooltip() {
+  const btn = document.getElementById('btn-sheets-sync');
+  if (!btn) return;
+  const last = localStorage.getItem(`rfp_last_sync_${YEAR}`);
+  btn.title = last ? `Last synced: ${last}` : 'Never synced — click to sync from Google Sheet';
+}
+
 async function syncFromGoogleSheet(clearFirst = false) {
   setSyncStatus('saving', 'Connecting to Google Sheet...');
   try {
@@ -1227,6 +1233,10 @@ async function syncFromGoogleSheet(clearFirst = false) {
 
     scheduleSave();
     renderAll();
+    const syncNow = new Date();
+    const syncStr = syncNow.toLocaleString('en-US', {month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+    localStorage.setItem(`rfp_last_sync_${YEAR}`, syncStr);
+    updateSyncTooltip();
     setSyncStatus('synced', clearFirst
       ? `✓ Sheet cleared & resynced: ${addedCount} transactions loaded`
       : `✓ Sheet sync: ${addedCount} new transactions added`
@@ -1347,12 +1357,16 @@ function renderAll() {
   const balMap = buildBalanceMap();
   const upcoming = nextUpcomingLow(balMap);
   const el = document.getElementById('yearlow-hdr');
-  const lbl = document.getElementById('yearlow-lbl');
+  const dateEl = document.getElementById('yearlow-date');
   if (el) {
-    el.textContent = upcoming !== null ? fmtM(upcoming) : '—';
-    el.className = 'tr-val ' + (upcoming !== null && upcoming < 500 ? 'neg' : upcoming !== null && upcoming < 1000 ? 'warn' : 'pos');
+    const val = upcoming ? upcoming.value : null;
+    const dt = upcoming ? upcoming.date : null;
+    el.textContent = val !== null ? fmtM(val) : '—';
+    el.style.color = val !== null && val <= 200 ? '#f87171' : val !== null && val <= 500 ? '#fb923c' : val !== null && val <= 1000 ? '#fbbf24' : '#4ade80';
+    if (dateEl) {
+      dateEl.textContent = dt ? dt.toLocaleString('en-US',{month:'short',day:'numeric'}) : '—';
+    }
   }
-  if (lbl) lbl.textContent = 'Upcoming Low:';
   const container = document.getElementById('months-inner');
   if (!container) return;
   container.innerHTML = '';
@@ -1398,6 +1412,7 @@ function showApp() {
   ensureOpeningTx();
   renderAll();
   setSyncStatus('synced', 'Ready');
+  updateSyncTooltip();
 }
 
 function checkSession() {
