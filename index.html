@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v29 -->
+<!-- RFP-BUILD-v30 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -313,6 +313,7 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
         <button class="hbtn" id="btn-sheets-sync" title="Sync from Google Sheet" style="background:#1a3a1a;border-color:#2d6a2d;color:#86efac">🔄 Sync Sheet</button>
         <button class="hbtn danger" id="btn-clear-data" title="Clear all planner data">🗑 Clear Data</button>
         <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
+        <button class="hbtn" id="btn-debug" style="background:#374151;border-color:#6b7280;color:#d1d5db;font-size:10px">🔍 Debug</button>
         <button class="hbtn danger" id="btn-signout">Sign Out</button>
       </div>
     </div>
@@ -1444,6 +1445,29 @@ document.getElementById('btn-google-signin').onclick = async () => {
   } catch (e) {
     alert('Sign-in failed: ' + e.message);
   }
+};
+
+document.getElementById('btn-debug').onclick = () => {
+  let txTotal = 0;
+  const dayTotals = [];
+  Object.entries(data).forEach(([k,v]) => {
+    if(k.startsWith('2026') && k <= '2026-05-20' && v && v.transactions) {
+      let daySum = 0;
+      v.transactions.forEach(tx => {
+        if(!tx.__opening) { txTotal += tx.amount||0; daySum += tx.amount||0; }
+      });
+      if(Math.abs(daySum) > 0) dayTotals.push(`${k}: ${daySum>=0?'+':''}${daySum.toFixed(2)}`);
+    }
+  });
+  const opening = data['__opening_2025__'] || 0;
+  const bal520 = opening + txTotal;
+  alert(
+    `Opening (2025 Balance): $${opening.toFixed(2)}\n` +
+    `Transaction total Jan1-May20: $${txTotal.toFixed(2)}\n` +
+    `Calculated 5/20 balance: $${bal520.toFixed(2)}\n` +
+    `Total days with data: ${dayTotals.length}\n\n` +
+    `Last 10 days:\n${dayTotals.slice(-10).join('\n')}`
+  );
 };
 
 document.getElementById('btn-signout').onclick = async () => {
