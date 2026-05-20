@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v33 -->
+<!-- RFP-BUILD-v35 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -262,6 +262,28 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
 .top-tx-row:last-child{border-bottom:none}
 .top-tx-row:nth-child(odd){background:var(--bg-card2)}
 
+
+/* ── YEAR DRAWER ─────────────────────────────────────────── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1a2035;border-right:2px solid #2d3f6e;z-index:301;transform:translateX(-100%);transition:transform 0.25s ease;display:flex;flex-direction:column;overflow:hidden}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:16px 14px 12px;border-bottom:1px solid #2d3f6e}
+.drawer-header h3{font-size:13px;font-weight:700;color:#e8efff;font-family:'Roboto',sans-serif}
+.drawer-header p{font-size:10px;color:#8898bb;margin-top:3px;font-family:'Roboto',sans-serif}
+.drawer-years{flex:1;overflow-y:auto;padding:8px 0}
+.drawer-year-btn{width:100%;text-align:left;padding:10px 16px;border:none;background:none;color:#c8d8ff;font-size:13px;font-family:'Roboto',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background 0.15s}
+.drawer-year-btn:hover{background:#2d3f6e}
+.drawer-year-btn.active{background:#2d3f6e;color:#fff;font-weight:700}
+.drawer-year-btn .yr-badge{font-size:9px;background:#1e3a1e;color:#4ade80;padding:2px 6px;border-radius:10px;font-weight:600}
+.drawer-year-btn.active .yr-badge{background:#14532d}
+.drawer-footer{padding:10px 14px;border-top:1px solid #2d3f6e}
+html[data-theme="dark"] .drawer{background:#0d1020;border-right-color:#1a2a4a}
+html[data-theme="dark"] .drawer-header{border-bottom-color:#1a2a4a}
+html[data-theme="dark"] .drawer-year-btn.active{background:#1a2a4a}
+html[data-theme="dark"] .drawer-year-btn:hover{background:#1a2a4a}
+html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
+
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:500}
 .modal{background:var(--bg-modal);border:1px solid var(--border-modal);border-radius:10px;padding:20px;min-width:290px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.25);font-family:'Roboto',sans-serif}
 .modal h3{font-size:13px;margin-bottom:12px;color:var(--text-primary);font-weight:700}
@@ -285,20 +307,28 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
   <div class="auth-box">
     <div class="logo">💰</div>
     <h2>Rowles Financial Planner</h2>
-    <p>Sign in with your Google account to access your 2026 financial planner. Your data syncs automatically across all your devices.</p>
-    <button class="google-btn" id="btn-google-signin">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
-      Sign in with Google
-    </button>
+    <p>Enter your password to access the planner.</p>
+    <input type="password" id="pin-input" placeholder="Password" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #3d5090;background:#1a2a4a;color:#e8efff;font-size:16px;margin-top:16px;outline:none;font-family:'Roboto',sans-serif" autocomplete="current-password">
+    <div id="pin-error" style="color:#f87171;font-size:12px;margin-top:8px;min-height:18px"></div>
+    <button class="google-btn" id="btn-pin-login" style="margin-top:8px;justify-content:center">Unlock</button>
   </div>
 </div>
 
 <!-- Main App -->
+
+<!-- Year Drawer -->
+<div class="drawer-overlay" id="drawer-overlay"></div>
+<div class="drawer" id="year-drawer">
+  <div class="drawer-header">
+    <h3>💰 Rowles Planner</h3>
+    <p>Select a year to view</p>
+  </div>
+  <div class="drawer-years" id="drawer-years"></div>
+  <div class="drawer-footer">
+    <div style="font-size:10px;color:#8898bb;font-family:'Roboto',sans-serif">Data stored locally per year</div>
+  </div>
+</div>
+
 <div id="app">
   <div class="app-header">
     <div class="page-wrap">
@@ -306,6 +336,7 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
       <div class="hdr-right">
         <span class="tr-lbl" id="yearlow-lbl">Upcoming Low:</span>
         <span class="tr-val warn" id="yearlow-hdr">—</span>
+        <button class="hbtn" id="btn-open-drawer" style="background:#2d3f6e;border-color:#3d5090;color:#c8d8ff;font-size:13px;padding:4px 10px">☰ <span id="hdr-year">2026</span></button>
         <button class="hbtn green" id="btn-add-today">+ Add to Today</button>
         <button class="hbtn" id="btn-stats" style="background:#4c1d95;border-color:#6d28d9;color:#ddd6fe">📊 Stats</button>
         <button class="hbtn" id="btn-import" title="Import CSV from spreadsheet">📥 Import CSV</button>
@@ -314,7 +345,7 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
         <button class="hbtn danger" id="btn-clear-data" title="Clear all planner data">🗑 Clear Data</button>
         <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
         <button class="hbtn" id="btn-debug" style="background:#374151;border-color:#6b7280;color:#d1d5db;font-size:10px">🔍 Debug</button>
-        <button class="hbtn danger" id="btn-signout">Sign Out</button>
+        <button class="hbtn" id="btn-lock" style="background:#374151;border-color:#4b5563;color:#e0e0e0">🔒 Lock</button>
       </div>
     </div>
   </div>
@@ -348,50 +379,38 @@ html[data-theme="dark"] .cp-other .tx-nm{color:#6a6a8a}
 
 <!-- Firebase SDKs -->
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ── FIREBASE CONFIG ──────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyCVWopx0HfwDm0lsGFvHo8iBUKhyW9n-fU",
-  authDomain: "rowles-financial-planner.firebaseapp.com",
-  projectId: "rowles-financial-planner",
-  storageBucket: "rowles-financial-planner.firebasestorage.app",
-  messagingSenderId: "995503000850",
-  appId: "1:995503000850:web:52e9db38877b26c62837cb"
-};
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
+// ── LOCAL STORAGE ────────────────────────────────────────────
+function lsKey()  { return `rfp${YEAR}_data`; }
+function lsUcKey() { return `rfp${YEAR}_uc`; }
+function localSave() {
+  localStorage.setItem(lsKey(), JSON.stringify(data));
+  localStorage.setItem(lsUcKey(), JSON.stringify([...userCollapsed]));
+}
+function localLoad() {
+  try { data = JSON.parse(localStorage.getItem(lsKey())) || {}; } catch(e) { data = {}; }
+  try { userCollapsed = new Set(JSON.parse(localStorage.getItem(lsUcKey())) || []); } catch(e) {}
+}
 
 // ── CONSTANTS ────────────────────────────────────────────────
-const YEAR = 2026;
+let YEAR = 2026;
 const DAYS_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const CATS = ['PAY','GAS','SUB','INS','LOAN','CC','UTIL','RENT','MEDICAL','FOOD','OTHER'];
 const CAT_CLS = {PAY:'cp-pay',GAS:'cp-gas',SUB:'cp-sub',INS:'cp-ins',LOAN:'cp-loan',CC:'cp-cc',UTIL:'cp-util',RENT:'cp-rent',MEDICAL:'cp-medical',FOOD:'cp-food',OTHER:'cp-other'};
-const OPENING_KEY = '__opening_2025__';
+let OPENING_KEY = '__opening_2025__';
+function openingKeyForYear(y) { return `__opening_${y-1}__`; }
 
 // ── CSV SEED DATA ────────────────────────────────────────────
 const CSV_DATA={};
 const CSV_OPENING = 0;
 
-// ── ALLOWED ACCOUNTS ─────────────────────────────────────────
-// Both emails share the exact same Firestore document
-const FAMILY_EMAILS = [
-  'keaganlrowles@gmail.com',   // Keagan (wife)
-  'keithrowles01@gmail.com'    // Keith
-];
-const SHARED_DOC_ID = 'rowles_family'; // single shared document for the whole family
+
 
 // ── STATE ────────────────────────────────────────────────────
 let data = {};
-let currentUser = null;
 let saveTimer = null;
-let unsubscribeSnapshot = null;
 let userCollapsed = new Set();
 let theme = localStorage.getItem('rfp_theme') || 'light';
 document.documentElement.setAttribute('data-theme', theme);
@@ -441,77 +460,17 @@ function setSyncStatus(state, text) {
   txt.textContent = text;
 }
 
-// ── FIREBASE SAVE (debounced) ────────────────────────────────
+// ── LOCAL SAVE (debounced) ───────────────────────────────────
 function scheduleSave() {
-  if (!currentUser) return;
   setSyncStatus('saving', 'Saving...');
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    try {
-      window._lastSaveTime = Date.now();
-      const docRef = doc(db, 'planners', SHARED_DOC_ID);
-      await setDoc(docRef, {
-        plannerData: JSON.stringify(data),
-        collapsed: JSON.stringify([...userCollapsed]),
-        updatedAt: window._lastSaveTime,
-        lastEditedBy: currentUser.email
-      });
-      setSyncStatus('synced', 'Saved · ' + currentUser.email.split('@')[0]);
-    } catch (e) {
-      setSyncStatus('error', 'Save failed — check connection');
-      console.error('Save error:', e);
-    }
-  }, 1500);
+  saveTimer = setTimeout(() => {
+    localSave();
+    setSyncStatus('synced', 'Saved');
+  }, 800);
 }
 
-// ── FIREBASE LOAD ────────────────────────────────────────────
-async function loadFromFirebase() {
-  setSyncStatus('saving', 'Loading...');
-  try {
-    const docRef = doc(db, 'planners', SHARED_DOC_ID);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      const d = snap.data();
-      data = JSON.parse(d.plannerData || '{}');
-      userCollapsed = new Set(JSON.parse(d.collapsed || '[]'));
-      const editor = d.lastEditedBy ? ' · last edited by ' + d.lastEditedBy.split('@')[0] : '';
-      setSyncStatus('synced', 'Up to date' + editor);
-    } else {
-      // First time — seed with CSV data
-      setSyncStatus('synced', 'Ready');
-    }
-  } catch (e) {
-    setSyncStatus('error', 'Load failed — check connection');
-    console.error('Load error:', e);
-  }
-  ensureOpeningTx();
-  renderAll();
-  // Real-time listener — updates instantly when the other person makes a change
-  if (unsubscribeSnapshot) unsubscribeSnapshot();
-  unsubscribeSnapshot = onSnapshot(doc(db, 'planners', SHARED_DOC_ID), (snap) => {
-    if (snap.exists() && snap.metadata.hasPendingWrites === false) {
-      const d = snap.data();
-      // Only update if this came from the other person, not our own save
-      if (d.updatedAt && d.updatedAt > (window._lastSaveTime || 0) && d.lastEditedBy !== currentUser.email) {
-        data = JSON.parse(d.plannerData || '{}');
-        // Only restore their collapse state if they changed it, not on every transaction update
-        // We keep our local collapse state for normal edits
-        ensureOpeningTx();
-        // Don't reset firstRender — we don't want to re-scroll
-        const balMap = buildBalanceMap();
-        const upcoming = nextUpcomingLow(balMap);
-        const el = document.getElementById('yearlow-hdr');
-        if (el) {
-          el.textContent = upcoming !== null ? fmtM(upcoming) : '—';
-          el.className = 'tr-val ' + (upcoming !== null && upcoming < 500 ? 'neg' : upcoming !== null && upcoming < 1000 ? 'warn' : 'pos');
-        }
-        const container = document.getElementById('months-inner');
-        if (container) { container.innerHTML = ''; for (let m=0; m<12; m++) container.appendChild(renderMonth(m, balMap)); }
-        setSyncStatus('synced', '✓ Synced · updated by ' + (d.lastEditedBy||'').split('@')[0]);
-      }
-    }
-  });
-}
+
 
 function seedCSVData() {
   return; // disabled
@@ -1150,12 +1109,63 @@ function showBankPreview(toAdd, alreadyImported, decisions) {
   }
 }
 
+
+// ── YEAR SWITCHER ────────────────────────────────────────────
+const YEARS = [2026, 2025, 2024, 2023];
+
+function switchYear(yr) {
+  // Save current year's data first
+  localSave();
+
+  YEAR = yr;
+  OPENING_KEY = openingKeyForYear(yr);
+
+  // Load new year's data
+  localLoad();
+  ensureOpeningTx();
+
+  // Update UI
+  document.getElementById('hdr-year').textContent = yr;
+  document.querySelectorAll('.drawer-year-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.year) === yr);
+  });
+
+  // Reset scroll and re-render
+  window._firstRender = true;
+  renderAll();
+  setSyncStatus('synced', `${yr} loaded`);
+  closeDrawer();
+}
+
+function buildDrawer() {
+  const container = document.getElementById('drawer-years');
+  container.innerHTML = '';
+  YEARS.forEach(yr => {
+    const btn = document.createElement('button');
+    btn.className = 'drawer-year-btn' + (yr === YEAR ? ' active' : '');
+    btn.dataset.year = yr;
+    const badge = yr === new Date().getFullYear() ? '<span class="yr-badge">current</span>' : '';
+    btn.innerHTML = `<span>${yr}</span>${badge}`;
+    btn.onclick = () => switchYear(yr);
+    container.appendChild(btn);
+  });
+}
+
+function openDrawer() {
+  document.getElementById('year-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('year-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+
 // ── GOOGLE SHEETS SYNC ────────────────────────────────────────
 // All auth handled securely by Cloudflare Worker — no keys in this file
 const WORKER_URL = 'https://rowles-planner-proxy.keithrowles01.workers.dev';
 
 async function fetchSheetAsCSV() {
-  const resp = await fetch(`${WORKER_URL}/read`);
+  const resp = await fetch(`${WORKER_URL}/read?year=${YEAR}`);
   if (!resp.ok) {
     const errText = await resp.text();
     throw new Error(`Sheet fetch failed: ${resp.status} - ${errText}`);
@@ -1376,19 +1386,67 @@ function renderAll() {
   }
 }
 
-// ── AUTH ─────────────────────────────────────────────────────
-document.getElementById('btn-google-signin').onclick = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (e) {
-    alert('Sign-in failed: ' + e.message);
+// ── PIN AUTH ─────────────────────────────────────────────────
+// Password is stored as a SHA-256 hash — not plaintext
+// To change password: update PASS_HASH with a new SHA-256 hex of your password
+// Current password hash (you'll set this on first run)
+const PASS_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // 'admin' — CHANGE THIS
+
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+const SESSION_KEY = 'rfp2026_auth';
+
+async function tryUnlock(pw) {
+  const hash = await hashPassword(pw);
+  if (hash === PASS_HASH) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    showApp();
+  } else {
+    document.getElementById('pin-error').textContent = 'Incorrect password. Try again.';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-input').focus();
   }
+}
+
+function showApp() {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  localLoad();
+  ensureOpeningTx();
+  renderAll();
+  setSyncStatus('synced', 'Ready');
+}
+
+function checkSession() {
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    showApp();
+  } else {
+    document.getElementById('auth-overlay').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    setTimeout(() => document.getElementById('pin-input').focus(), 100);
+  }
+}
+
+document.getElementById('btn-pin-login').onclick = () => {
+  const pw = document.getElementById('pin-input').value;
+  if (!pw) return;
+  tryUnlock(pw);
 };
+
+document.getElementById('pin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const pw = document.getElementById('pin-input').value;
+    if (pw) tryUnlock(pw);
+  }
+});
 
 document.getElementById('btn-debug').onclick = () => {
   let txTotal = 0;
   const dayLines = [];
-  const sortedKeys = Object.keys(data).filter(k=>k.startsWith('2026')&&k<='2026-05-20').sort();
+  const todayStr = dk(new Date()); const sortedKeys = Object.keys(data).filter(k=>k.startsWith(String(YEAR))&&k<=todayStr).sort();
   sortedKeys.forEach(k => {
     const v = data[k];
     if(v && v.transactions) {
@@ -1431,54 +1489,22 @@ document.getElementById('btn-debug').onclick = () => {
   document.getElementById('mov').onclick = e => { if(e.target.id==='mov') root.innerHTML=''; };
 };
 
-document.getElementById('btn-signout').onclick = async () => {
-  if (confirm('Sign out?')) {
-    if (unsubscribeSnapshot) unsubscribeSnapshot();
-    await signOut(auth);
-  }
+document.getElementById('btn-lock').onclick = () => {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('auth-overlay').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').textContent = '';
+  setTimeout(() => document.getElementById('pin-input').focus(), 100);
 };
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    // Check if this email is authorized
-    const email = (user.email || '').toLowerCase();
-    const isAuthorized = FAMILY_EMAILS.map(e => e.toLowerCase()).includes(email);
-    if (!isAuthorized) {
-      await signOut(auth);
-      document.getElementById('auth-overlay').innerHTML = `
-        <div class="auth-box">
-          <div class="logo">🔒</div>
-          <h2>Access Denied</h2>
-          <p>The account <strong>${user.email}</strong> is not authorized to access this planner.</p>
-          <p style="margin-top:12px;font-size:12px;color:#999">Please sign in with an authorized Google account.</p>
-          <button class="google-btn" id="btn-retry" style="margin-top:20px">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Try a different account
-          </button>
-        </div>`;
-      document.getElementById('btn-retry').onclick = async () => {
-        location.reload();
-      };
-      return;
-    }
-    currentUser = user;
-    document.getElementById('auth-overlay').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('sync-user').textContent = user.email;
-    await loadFromFirebase();
-  } else {
-    currentUser = null;
-    document.getElementById('auth-overlay').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-    data = {};
-    if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
-  }
-});
+document.getElementById('btn-open-drawer').onclick = openDrawer;
+document.getElementById('drawer-overlay').onclick = closeDrawer;
+
+buildDrawer();
+
+// Boot — check if already authenticated this session
+checkSession();
 
 // ── HEADER BUTTONS ───────────────────────────────────────────
 document.getElementById('btn-import').onclick = () => {
