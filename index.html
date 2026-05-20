@@ -1390,7 +1390,7 @@ function renderAll() {
 // Password is stored as a SHA-256 hash — not plaintext
 // To change password: update PASS_HASH with a new SHA-256 hex of your password
 // Current password hash (you'll set this on first run)
-const PASS_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // 'admin' — CHANGE THIS
+const PASS_HASH = '4225466f46976e5877d0c8f7a77eafbf97a92841dedabae705816fa4c76e033f'; // 'admin' — CHANGE THIS
 
 async function hashPassword(pw) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
