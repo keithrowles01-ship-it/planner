@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v35 -->
+<!-- RFP-BUILD-v36 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -71,7 +71,6 @@ html[data-theme="dark"] .sync-bar{background:#080c14}
 .sync-dot.saving{background:#fbbf24;animation:pulse 0.8s infinite}
 .sync-dot.error{background:#f87171}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.sync-user{color:#4a6a8a;font-size:10px}
 
 .months-container{padding:8px 0}
 .months-container .page-wrap{padding:0 8px}
@@ -344,8 +343,6 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
         <button class="hbtn" id="btn-sheets-sync" title="Sync from Google Sheet" style="background:#1a3a1a;border-color:#2d6a2d;color:#86efac">🔄 Sync Sheet</button>
         <button class="hbtn danger" id="btn-clear-data" title="Clear all planner data">🗑 Clear Data</button>
         <button class="hbtn theme-btn" id="btn-theme" title="Toggle light/dark mode">🌙</button>
-        <button class="hbtn" id="btn-debug" style="background:#374151;border-color:#6b7280;color:#d1d5db;font-size:10px">🔍 Debug</button>
-        <button class="hbtn" id="btn-lock" style="background:#374151;border-color:#4b5563;color:#e0e0e0">🔒 Lock</button>
       </div>
     </div>
   </div>
@@ -355,7 +352,6 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
         <div class="sync-dot" id="sync-dot"></div>
         <span id="sync-text">Connecting...</span>
       </div>
-      <span class="sync-user" id="sync-user"></span>
     </div>
   </div>
   <div id="months-container" class="months-container">
@@ -368,7 +364,7 @@ html[data-theme="dark"] .drawer-footer{border-top-color:#1a2a4a}
 <div id="stats-overlay" style="display:none;position:fixed;inset:0;background:var(--bg-page);z-index:300;overflow-y:auto">
   <div style="max-width:1100px;margin:0 auto;padding:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h2 style="font-size:18px;font-weight:700;color:var(--text-primary);font-family:'Roboto',sans-serif">📊 2026 Financial Stats</h2>
+      <h2 style="font-size:18px;font-weight:700;color:var(--text-primary);font-family:'Roboto',sans-serif" id="stats-title">📊 2026 Financial Stats</h2>
       <button id="btn-stats-close" class="hbtn" style="font-size:13px">✕ Close</button>
     </div>
     <div id="stats-content"></div>
@@ -402,9 +398,6 @@ const CAT_CLS = {PAY:'cp-pay',GAS:'cp-gas',SUB:'cp-sub',INS:'cp-ins',LOAN:'cp-lo
 let OPENING_KEY = '__opening_2025__';
 function openingKeyForYear(y) { return `__opening_${y-1}__`; }
 
-// ── CSV SEED DATA ────────────────────────────────────────────
-const CSV_DATA={};
-const CSV_OPENING = 0;
 
 
 
@@ -472,23 +465,11 @@ function scheduleSave() {
 
 
 
-function seedCSVData() {
-  return; // disabled
-  Object.entries(CSV_DATA).forEach(([key, txs]) => {
-    if (!data[key]) data[key] = {balance:null, transactions:[], complete:false};
-    txs.forEach(tx => {
-      const exists = data[key].transactions.some(t => t.name === tx.name && t.amount === tx.amount);
-      if (!exists) data[key].transactions.push({...tx, category: detectCat(tx.name)});
-    });
-  });
-  if (data[OPENING_KEY] === undefined) data[OPENING_KEY] = CSV_OPENING;
-}
-
 function ensureOpeningTx() {
   const jan1key = `${YEAR}-01-01`;
   const d = getDay(jan1key);
   const idx = d.transactions.findIndex(t => t.__opening);
-  const ob = data[OPENING_KEY] !== undefined ? data[OPENING_KEY] : CSV_OPENING;
+  const ob = data[OPENING_KEY] !== undefined ? data[OPENING_KEY] : 0;
   const tx = {__opening:true, name:'2025 Balance', amount:ob, paid:true, category:'OTHER'};
   if (idx === -1) d.transactions.unshift(tx);
   else d.transactions[idx] = tx;
@@ -1390,7 +1371,7 @@ function renderAll() {
 // Password is stored as a SHA-256 hash — not plaintext
 // To change password: update PASS_HASH with a new SHA-256 hex of your password
 // Current password hash (you'll set this on first run)
-const PASS_HASH = '4225466f46976e5877d0c8f7a77eafbf97a92841dedabae705816fa4c76e033f'; // 'admin' — CHANGE THIS
+const PASS_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // 'admin' — CHANGE THIS
 
 async function hashPassword(pw) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
@@ -1443,60 +1424,7 @@ document.getElementById('pin-input').addEventListener('keydown', e => {
   }
 });
 
-document.getElementById('btn-debug').onclick = () => {
-  let txTotal = 0;
-  const dayLines = [];
-  const todayStr = dk(new Date()); const sortedKeys = Object.keys(data).filter(k=>k.startsWith(String(YEAR))&&k<=todayStr).sort();
-  sortedKeys.forEach(k => {
-    const v = data[k];
-    if(v && v.transactions) {
-      let daySum = 0;
-      v.transactions.forEach(tx => {
-        if(!tx.__opening) { txTotal += tx.amount||0; daySum += tx.amount||0; }
-      });
-      if(Math.abs(daySum) > 0.001) {
-        dayLines.push(`${k}: ${daySum>=0?'+':''}${daySum.toFixed(2)} (${v.transactions.filter(t=>!t.__opening).length} txs)`);
-      }
-    }
-  });
-  const opening = data['__opening_2025__'] || 0;
-  const bal520 = opening + txTotal;
 
-  const root = document.getElementById('modal-root');
-  root.innerHTML = `<div class="modal-ov" id="mov"><div class="modal" style="max-width:520px;width:95%">
-    <h3>🔍 Debug — Balance Breakdown</h3>
-    <div style="font-family:'Roboto Mono',monospace;font-size:11px;margin-top:10px;display:grid;gap:4px">
-      <div style="display:flex;justify-content:space-between;padding:4px 8px;background:var(--bg-card2);border-radius:4px">
-        <span>Opening (2025 Balance)</span><span>$${opening.toFixed(2)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:4px 8px;background:var(--bg-card2);border-radius:4px">
-        <span>Transaction total Jan1–May20</span><span>${txTotal>=0?'+':''}$${Math.abs(txTotal).toFixed(2)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:4px 8px;background:#1e3a1e;border-radius:4px;font-weight:700">
-        <span>Calculated 5/20 balance</span><span>$${bal520.toFixed(2)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:4px 8px;background:var(--bg-card2);border-radius:4px">
-        <span>Days with data</span><span>${dayLines.length}</span>
-      </div>
-    </div>
-    <div style="margin-top:12px;font-size:10px;font-family:'Roboto Mono',monospace;max-height:300px;overflow-y:auto;background:var(--bg-card2);border-radius:4px;padding:8px">
-      <div style="font-weight:700;margin-bottom:6px;color:var(--text-muted)">ALL DAYS WITH TRANSACTIONS:</div>
-      ${dayLines.map(l=>`<div>${l}</div>`).join('')}
-    </div>
-    <div class="mbtns"><button id="mcancel">Close</button></div>
-  </div></div>`;
-  document.getElementById('mcancel').onclick = () => root.innerHTML = '';
-  document.getElementById('mov').onclick = e => { if(e.target.id==='mov') root.innerHTML=''; };
-};
-
-document.getElementById('btn-lock').onclick = () => {
-  sessionStorage.removeItem(SESSION_KEY);
-  document.getElementById('auth-overlay').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('pin-input').value = '';
-  document.getElementById('pin-error').textContent = '';
-  setTimeout(() => document.getElementById('pin-input').focus(), 100);
-};
 
 document.getElementById('btn-open-drawer').onclick = openDrawer;
 document.getElementById('drawer-overlay').onclick = closeDrawer;
@@ -1697,6 +1625,8 @@ function renderStats() {
   const s = computeStats();
   const el = document.getElementById('stats-content');
   if(!el) return;
+  const titleEl = document.getElementById('stats-title');
+  if(titleEl) titleEl.textContent = `📊 ${YEAR} Financial Stats`;
 
   const fmt2 = n => n<0?`-$${Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`:`$${n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   const fmtK = n => {
