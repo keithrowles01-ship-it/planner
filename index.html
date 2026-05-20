@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- RFP-BUILD-v32 -->
+<!-- RFP-BUILD-v33 -->
 <!-- Rowles Financial Planner v14 - clean build -->
 <html data-theme="light">
 <head>
@@ -739,6 +739,11 @@ function openModal(dk_key, txIdx) {
       d.transactions[txIdx]={...txEntry};
     }
     scheduleSave(); root.innerHTML=''; renderAll();
+
+    // If this is a new transaction added manually (not a sync), send to App Entries staging tab
+    if (isNew) {
+      sendToStaging(dk_key, txEntry);
+    }
   };
 
   if(!isNew) document.getElementById('mdel').onclick=()=>{
@@ -1166,6 +1171,30 @@ async function fetchSheetAsCSV() {
       return s;
     }).join(',')
   ).join('\n');
+}
+
+async function sendToStaging(dateKey, tx) {
+  // Format: Date, Name, Amount, Paid, Category
+  const row = [
+    dateKey,
+    tx.name,
+    tx.amount,
+    tx.paid ? 'TRUE' : 'FALSE',
+    tx.category || detectCat(tx.name)
+  ];
+  try {
+    const resp = await fetch(`${WORKER_URL}/append`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: [row] })
+    });
+    const json = await resp.json();
+    if (!json.ok) throw new Error(JSON.stringify(json));
+    setSyncStatus('synced', `✓ Saved to App Entries: ${tx.name}`);
+  } catch(e) {
+    console.warn('Staging write failed (transaction still saved locally):', e.message);
+    setSyncStatus('error', `Note: could not write to sheet staging — ${e.message}`);
+  }
 }
 
 async function syncFromGoogleSheet(clearFirst = false) {
